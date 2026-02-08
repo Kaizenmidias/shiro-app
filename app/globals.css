@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+:root {
+    /* Tech Cyan Palette - Neon Update */
+    --bg-color: #030303;
+    --surface-color: #0a0a0f;
+    --surface-highlight: #11111a;
+
+    --primary: #00EEF4;
+    --primary-dim: #008c90;
+    --primary-glow: rgba(0, 238, 244, 0.4);
+
+    --secondary: #1a44e5;
+    --accent: #ff0055;
+
+    --text-main: #ffffff;
+    --text-muted: #8b9eb7;
+
+    --glass-bg: rgba(10, 10, 15, 0.8);
+    --glass-border: rgba(0, 238, 244, 0.12);
+
+    --radius: 12px;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+    background-color: var(--bg-color);
+    background-image:
+        radial-gradient(circle at 15% 50%, rgba(26, 68, 229, 0.05) 0%, transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(0, 238, 244, 0.05) 0%, transparent 25%);
+    background-attachment: fixed;
+    color: var(--text-main);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Glass Panel / Card Styles */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.05);
+    border-radius: var(--radius);
+    transition: all 0.3s ease;
+}
+
+.glass-panel:hover {
+    border-color: rgba(0, 243, 255, 0.3);
+    box-shadow: 0 0 25px rgba(0, 243, 255, 0.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--surface-highlight);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dim);
+}
+
+.scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+    display: none;
+}

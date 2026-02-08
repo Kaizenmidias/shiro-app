@@ -1,0 +1,202 @@
+[
+    {
+        "id": "arroz_branco",
+        "name": "Arroz Branco Cozido",
+        "calories": 130,
+        "protein": 2.5,
+        "carbs": 28,
+        "fats": 0.2,
+        "unit": "g",
+        "category": "Carboidrato"
+    },
+    {
+        "id": "feijao_carioca",
+        "name": "Feijão Carioca Cozido",
+        "calories": 76,
+        "protein": 5,
+        "carbs": 14,
+        "fats": 0.5,
+        "unit": "g",
+        "category": "Leguminosa"
+    },
+    {
+        "id": "frango_grelhado",
+        "name": "Peito de Frango Grelhado",
+        "calories": 165,
+        "protein": 31,
+        "carbs": 0,
+        "fats": 3.6,
+        "unit": "g",
+        "category": "Proteína"
+    },
+    {
+        "id": "batata_doce",
+        "name": "Batata Doce Cozida",
+        "calories": 86,
+        "protein": 1.6,
+        "carbs": 20,
+        "fats": 0.1,
+        "unit": "g",
+        "category": "Carboidrato"
+    },
+    {
+        "id": "aveia",
+        "name": "Aveia em Flocos",
+        "calories": 389,
+        "protein": 16.9,
+        "carbs": 66,
+        "fats": 6.9,
+        "unit": "g",
+        "category": "Carboidrato"
+    },
+    {
+        "id": "whey_protein",
+        "name": "Whey Protein (Isolado/Conc)",
+        "calories": 120,
+        "protein": 24,
+        "carbs": 3,
+        "fats": 1.5,
+        "unit": "dose (30g)",
+        "category": "Suplemento"
+    },
+    {
+        "id": "pasta_amendoim",
+        "name": "Pasta de Amendoim",
+        "calories": 588,
+        "protein": 25,
+        "carbs": 20,
+        "fats": 50,
+        "unit": "g",
+        "category": "Gordura"
+    },
+    {
+        "id": "brocolis",
+        "name": "Brócolis Cozido",
+        "calories": 35,
+        "protein": 2.4,
+        "carbs": 7,
+        "fats": 0.4,
+        "unit": "g",
+        "category": "Vegetal"
+    },
+    {
+        "id": "ovos_mexidos",
+        "name": "Ovos Mexidos (2 un)",
+        "calories": 190,
+        "protein": 12,
+        "carbs": 2,
+        "fats": 15,
+        "unit": "porção",
+        "category": "Proteína"
+    },
+    {
+        "id": "ovo_cozido",
+        "name": "Ovo Cozido",
+        "calories": 78,
+        "protein": 6,
+        "carbs": 0.6,
+        "fats": 5,
+        "unit": "unidade",
+        "category": "Proteína"
+    },
+    {
+        "id": "pao_integral",
+        "name": "Pão Integral",
+        "calories": 60,
+        "protein": 3,
+        "carbs": 12,
+        "fats": 1,
+        "unit": "fatia",
+        "category": "Carboidrato"
+    },
+    {
+        "id": "banana_prata",
+        "name": "Banana Prata",
+        "calories": 89,
+        "protein": 1,
+        "carbs": 23,
+        "fats": 0.3,
+        "unit": "unidade",
+        "category": "Fruta"
+    },
+    {
+        "id": "maca",
+        "name": "Maçã",
+        "calories": 52,
+        "protein": 0.3,
+        "carbs": 14,
+        "fats": 0.2,
+        "unit": "unidade",
+        "category": "Fruta"
+    },
+    {
+        "id": "iogurte_natural",
+        "name": "Iogurte Natural",
+        "calories": 126,
+        "protein": 6,
+        "carbs": 9,
+        "fats": 7,
+        "unit": "pote (170g)",
+        "category": "Laticínio"
+    },
+    {
+        "id": "leite_integral",
+        "name": "Leite Integral",
+        "calories": 60,
+        "protein": 3,
+        "carbs": 5,
+        "fats": 3,
+        "unit": "100ml",
+        "category": "Laticínio"
+    },
+    {
+        "id": "azeite",
+        "name": "Azeite de Oliva",
+        "calories": 90,
+        "protein": 0,
+        "carbs": 0,
+        "fats": 10,
+        "unit": "colher de sopa",
+        "category": "Gordura"
+    },
+    {
+        "id": "patinho_moido",
+        "name": "Carne Moída (Patinho)",
+        "calories": 219,
+        "protein": 35,
+        "carbs": 0,
+        "fats": 7,
+        "unit": "g",
+        "category": "Proteína"
+    },
+    {
+        "id": "cuscuz",
+        "name": "Cuscuz Nordestino",
+        "calories": 112,
+        "protein": 2,
+        "carbs": 25,
+        "fats": 0,
+        "unit": "g",
+        "category": "Carboidrato"
+    },
+    {
+        "id": "alface",
+        "name": "Alface",
+        "calories": 15,
+        "protein": 1.4,
+        "carbs": 2.9,
+        "fats": 0.2,
+        "unit": "g (100g)",
+        "category": "Vegetal"
+    },
+    {
+        "id": "tomate",
+        "name": "Tomate",
+        "calories": 18,
+        "protein": 0.9,
+        "carbs": 3.9,
+        "fats": 0.2,
+        "unit": "unidade média",
+        "category": "Vegetal"
+    }
+]
