@@ -97,7 +97,7 @@ export const AuthScreen = () => {
                 <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[var(--accent)]/10 blur-[120px] rounded-full" />
             </div>
 
-            <div className="glass-panel w-full max-w-xl p-8 md:p-12 relative animate-fade-in border-[var(--primary)] shadow-[0_0_50px_rgba(0,243,255,0.1)]">
+            <div className="glass-panel w-full max-w-xl p-6 sm:p-8 md:p-12 relative animate-fade-in border-[var(--primary)] shadow-[0_0_50px_rgba(0,243,255,0.1)]">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--primary)] via-[var(--accent)] to-transparent" />
 
                 <div className="text-center mb-10">
@@ -136,7 +136,7 @@ export const AuthScreen = () => {
                         </div>
                     )}
                     {!isLogin && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                             <div className="col-span-2">
                                 <label className="text-[10px] text-[var(--primary)] font-black uppercase tracking-widest mb-2 block">Seu Nome</label>
                                 <div className="relative">

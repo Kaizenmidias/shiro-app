@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useGame } from '../contexts/GameContext';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabaseClient';
 
 const STORAGE_KEY = 'lifeos_routine';
 const PROCESSED_KEY = 'lifeos_routine_processed';
@@ -9,16 +11,22 @@ const RESET_KEY = 'lifeos_routine_reset';
 
 export const useRoutine = () => {
     const { addPoints, removePoints } = useGame();
+    const { user } = useAuth();
     const [tasks, setTasks] = useState([]);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-            setTasks(JSON.parse(saved));
+        let localTasks = saved ? JSON.parse(saved) : [];
+
+        // Prefer remote routine if available
+        if (user?.user_metadata?.routine && Array.isArray(user.user_metadata.routine)) {
+            setTasks(user.user_metadata.routine);
+        } else {
+            setTasks(localTasks);
         }
         setMounted(true);
-    }, []);
+    }, [user]);
 
     // Daily evaluation and reset logic
     useEffect(() => {
@@ -88,8 +96,11 @@ export const useRoutine = () => {
         if (mounted) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
             checkAlarms();
+            if (user) {
+                supabase.auth.updateUser({ data: { routine: tasks } });
+            }
         }
-    }, [tasks, mounted]);
+    }, [tasks, mounted, user]);
 
     // Simple alarm check (polling)
     useEffect(() => {

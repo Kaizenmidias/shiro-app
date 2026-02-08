@@ -160,7 +160,7 @@ export const RoutineList = () => {
             {/* Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-                    <div className="glass-panel w-full max-w-md p-6 border-[var(--primary)] animate-fade-in shadow-[0_0_50px_rgba(0,243,255,0.15)]">
+                    <div className="glass-panel w-full max-w-md p-6 md:p-8 border-[var(--primary)] animate-fade-in shadow-[0_0_50px_rgba(0,243,255,0.15)]">
                         <h3 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
                             <span className="text-[var(--primary)]">{editingTask ? '/// EDITAR' : '/// NOVA'}</span> TAREFA
                         </h3>
@@ -179,7 +179,7 @@ export const RoutineList = () => {
                                     <label className="text-xs text-[var(--text-muted)] mb-1 block uppercase font-mono">Horário (Opcional)</label>
                                     <input
                                         type="time"
-                                        className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-lg p-3 text-white focus:outline-none focus:border-[var(--primary)]"
+                                        className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-lg p-3 text-white focus:outline-none focus:border-[var(--primary)] [color-scheme:dark]"
                                         value={taskData.time}
                                         onChange={e => setTaskData({ ...taskData, time: e.target.value })}
                                     />
@@ -250,4 +250,3 @@ export const RoutineList = () => {
         </div>
     );
 };
-

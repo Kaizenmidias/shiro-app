@@ -2,24 +2,91 @@
 
 import React, { useState } from 'react';
 import { useGame } from '../contexts/GameContext';
-import { X, Camera, User, Check, RefreshCw } from 'lucide-react';
+import { useHealth } from '../hooks/useHealth';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabaseClient';
+import { X, Camera, User, Check, RefreshCw, Mail, Lock } from 'lucide-react';
 
 export const SettingsModal = ({ isOpen, onClose }) => {
     const { userName, setUserName, userPhoto, setUserPhoto } = useGame();
+    const { user } = useAuth();
+    const { userData, profileData, updateUserData } = useHealth();
     const [tempName, setTempName] = useState(userName);
     const [tempPhoto, setTempPhoto] = useState(userPhoto);
+    const [photoFile, setPhotoFile] = useState(null);
+    const [tempWeight, setTempWeight] = useState(userData.weight || '');
+    const [tempHeight, setTempHeight] = useState(profileData.height || '');
+    const [tempAge, setTempAge] = useState(profileData.age || '');
+    const [tempEmail, setTempEmail] = useState(user?.email || '');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
+    const [successMsg, setSuccessMsg] = useState('');
 
     if (!isOpen) return null;
 
-    const handleSave = () => {
+    const handleFileSelect = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setPhotoFile(file);
+        const preview = URL.createObjectURL(file);
+        setTempPhoto(preview);
+    };
+
+    const uploadPhotoIfNeeded = async () => {
+        if (!photoFile || !user) return null;
+        const ext = photoFile.name.split('.').pop();
+        const path = `avatars/${user.id}-${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('avatars').upload(path, photoFile, { upsert: true });
+        if (upErr) return null;
+        const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+        return data?.publicUrl || null;
+    };
+
+    const handleSave = async () => {
         setIsSaving(true);
-        setTimeout(() => {
+        setErrorMsg('');
+        setSuccessMsg('');
+        try {
+            let finalPhoto = tempPhoto;
+            const uploadedUrl = await uploadPhotoIfNeeded();
+            if (uploadedUrl) finalPhoto = uploadedUrl;
+
             setUserName(tempName);
-            setUserPhoto(tempPhoto);
+            setUserPhoto(finalPhoto);
+
+            await updateUserData({ weight: tempWeight });
+            await updateUserData({ height: tempHeight, age: tempAge });
+
+            const metadataUpdates = {
+                name: tempName,
+                avatarUrl: finalPhoto,
+                weight: tempWeight,
+                height: tempHeight,
+                age: tempAge
+            };
+            await supabase.auth.updateUser({ data: metadataUpdates });
+
+            if (tempEmail && tempEmail !== user?.email) {
+                await supabase.auth.updateUser({ email: tempEmail });
+                setSuccessMsg('Email atualizado. Verifique sua caixa de entrada para confirmar.');
+            }
+
+            if (newPassword) {
+                if (newPassword !== confirmPassword) {
+                    throw new Error('As senhas não coincidem.');
+                }
+                await supabase.auth.updateUser({ password: newPassword });
+            }
+
+            if (!successMsg) setSuccessMsg('Perfil atualizado com sucesso.');
             setIsSaving(false);
             onClose();
-        }, 800);
+        } catch (e) {
+            setIsSaving(false);
+            setErrorMsg(e.message || 'Erro ao salvar alterações.');
+        }
     };
 
     const generateNewAvatar = () => {
@@ -62,6 +129,10 @@ export const SettingsModal = ({ isOpen, onClose }) => {
                                 <RefreshCw size={20} className={isSaving ? 'animate-spin' : ''} />
                             </button>
                         </div>
+                        <div className="w-full">
+                            <label className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest block mb-2">Upload de Foto</label>
+                            <input type="file" accept="image/*" onChange={handleFileSelect} className="w-full text-xs" />
+                        </div>
                         <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-mono">Avatar Autogerado</p>
                     </div>
 
@@ -93,7 +164,86 @@ export const SettingsModal = ({ isOpen, onClose }) => {
                                 />
                             </div>
                         </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-xs text-[var(--text-muted)] font-mono uppercase mb-2 block tracking-widest">Peso (kg)</label>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-[var(--primary)] transition-all"
+                                    value={tempWeight}
+                                    onChange={e => setTempWeight(e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs text-[var(--text-muted)] font-mono uppercase mb-2 block tracking-widest">Altura (cm)</label>
+                                <input
+                                    type="number"
+                                    className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-[var(--primary)] transition-all"
+                                    value={tempHeight}
+                                    onChange={e => setTempHeight(e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs text-[var(--text-muted)] font-mono uppercase mb-2 block tracking-widest">Idade</label>
+                                <input
+                                    type="number"
+                                    className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-[var(--primary)] transition-all"
+                                    value={tempAge}
+                                    onChange={e => setTempAge(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-xs text-[var(--text-muted)] font-mono uppercase mb-2 block tracking-widest">E-mail</label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={18} />
+                                <input
+                                    type="email"
+                                    className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-[var(--primary)] transition-all"
+                                    value={tempEmail}
+                                    onChange={e => setTempEmail(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-xs text-[var(--text-muted)] font-mono uppercase mb-2 block tracking-widest">Nova Senha</label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={18} />
+                                    <input
+                                        type="password"
+                                        className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-[var(--primary)] transition-all"
+                                        value={newPassword}
+                                        onChange={e => setNewPassword(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-xs text-[var(--text-muted)] font-mono uppercase mb-2 block tracking-widest">Confirmar Senha</label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={18} />
+                                    <input
+                                        type="password"
+                                        className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-[var(--primary)] transition-all"
+                                        value={confirmPassword}
+                                        onChange={e => setConfirmPassword(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
+                    {errorMsg && (
+                        <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-xl text-sm text-center">
+                            {errorMsg}
+                        </div>
+                    )}
+                    {successMsg && (
+                        <div className="bg-green-500/10 border border-green-500/50 text-green-500 p-3 rounded-xl text-sm text-center">
+                            {successMsg}
+                        </div>
+                    )}
 
                     {/* Actions */}
                     <div className="flex gap-4 pt-4">
