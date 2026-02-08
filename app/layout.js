@@ -10,8 +10,8 @@ const poppins = Poppins({
 });
 
 export const metadata = {
-    title: 'LifeOS',
-    description: 'Gamify your life',
+    title: 'Shiro',
+    description: 'No game, no life',
 };
 
 export default function RootLayout({ children }) {

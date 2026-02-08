@@ -17,10 +17,12 @@ export const AuthScreen = () => {
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [successMessage, setSuccessMessage] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         password: '',
+        confirmPassword: '',
         age: '',
         height: '',
         weight: '',
@@ -28,15 +30,28 @@ export const AuthScreen = () => {
         income: 0
     });
 
+    const translateError = (message) => {
+        if (message.includes('Invalid login credentials')) return 'Email ou senha incorretos.';
+        if (message.includes('User already registered')) return 'Este email já está cadastrado.';
+        if (message.includes('Password should be at least')) return 'A senha deve ter pelo menos 6 caracteres.';
+        if (message.includes('security purposes')) return 'Muitas tentativas. Aguarde alguns segundos.';
+        return 'Ocorreu um erro ao processar sua solicitação. Tente novamente.';
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        setSuccessMessage(null);
 
         try {
             if (isLogin) {
                 await login({ email: formData.email, password: formData.password });
             } else {
+                if (formData.password !== formData.confirmPassword) {
+                    throw new Error('As senhas não coincidem.');
+                }
+
                 await signup({ 
                     email: formData.email, 
                     password: formData.password,
@@ -52,6 +67,8 @@ export const AuthScreen = () => {
                     }
                 });
 
+                setSuccessMessage('Cadastro realizado com sucesso! Verifique seu email para confirmar a conta.');
+                
                 // Sync Onboarding Data
                 setUserName(formData.name);
                 completeOnboarding({
@@ -66,7 +83,7 @@ export const AuthScreen = () => {
                 }
             }
         } catch (err) {
-            setError(err.message);
+            setError(translateError(err.message || err));
         } finally {
             setLoading(false);
         }
@@ -111,6 +128,11 @@ export const AuthScreen = () => {
                     {error && (
                         <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-xl text-sm text-center">
                             {error}
+                        </div>
+                    )}
+                    {successMessage && (
+                        <div className="bg-green-500/10 border border-green-500/50 text-green-500 p-3 rounded-xl text-sm text-center">
+                            {successMessage}
                         </div>
                     )}
                     {!isLogin && (
@@ -220,6 +242,23 @@ export const AuthScreen = () => {
                                 />
                             </div>
                         </div>
+
+                        {!isLogin && (
+                            <div>
+                                <label className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2 block">Confirmar Senha</label>
+                                <div className="relative">
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={18} />
+                                    <input
+                                        type="password"
+                                        required
+                                        className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-[var(--primary)] transition-all"
+                                        placeholder="••••••••"
+                                        value={formData.confirmPassword}
+                                        onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <button

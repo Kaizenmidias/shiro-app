@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useGame } from '../contexts/GameContext';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabaseClient';
 import nutritionDataRaw from '../data/nutritionData.json';
 
 export const useHealth = () => {
+    const { user } = useAuth();
     const {
         userAge, setUserAge,
         userHeight, setUserHeight,
@@ -154,7 +157,35 @@ export const useHealth = () => {
         if (mounted) localStorage.setItem('gamification_health_history', JSON.stringify(weightHistory));
     }, [weightHistory, mounted]);
 
-    const updateUserData = (data) => setUserData(prev => ({ ...prev, ...data }));
+    // Sync with Supabase Auth Metadata
+    useEffect(() => {
+        if (user?.user_metadata) {
+            const meta = user.user_metadata;
+            setUserData(prev => ({
+                ...prev,
+                weight: meta.weight || prev.weight,
+                startingWeight: meta.startingWeight || meta.weight || prev.startingWeight,
+                goal: meta.goal || prev.goal,
+                targetWeight: meta.targetWeight || prev.targetWeight,
+                deadline: meta.deadline || prev.deadline,
+                onboardingSet: meta.onboardingSet || (!!meta.weight && !!meta.height),
+            }));
+            
+            // Sync GameContext values if they are missing locally but exist in auth
+            if (meta.age && userAge !== meta.age) setUserAge(meta.age);
+            if (meta.height && userHeight !== meta.height) setUserHeight(meta.height);
+            if (meta.sex && userSex !== meta.sex) setUserSex(meta.sex);
+        }
+    }, [user, setUserAge, setUserHeight, setUserSex]);
+
+    const updateUserData = async (data) => {
+        setUserData(prev => ({ ...prev, ...data }));
+        if (user) {
+            await supabase.auth.updateUser({
+                data: data
+            });
+        }
+    };
 
     const getWeightRoadmap = () => {
         // Fallback for users who don't have startingWeight set yet
@@ -178,21 +209,36 @@ export const useHealth = () => {
         return roadmap;
     };
 
-    const completeOnboarding = (data) => {
+    const completeOnboarding = async (data) => {
         setUserAge(data.age);
         setUserHeight(data.height);
         setUserSex(data.sex);
-        setUserData(prev => ({
-            ...prev,
+
+        const updates = {
             weight: data.weight,
             startingWeight: data.weight,
-            onboardingSet: true
+            onboardingSet: true,
+            age: data.age,
+            height: data.height,
+            sex: data.sex
+        };
+
+        setUserData(prev => ({
+            ...prev,
+            ...updates
         }));
+
+        if (user) {
+            await supabase.auth.updateUser({
+                data: updates
+            });
+        }
+
         // Add initial record to history
         updateWeight(data.weight);
     };
 
-    const updateWeight = (newWeight, newBf = '') => {
+    const updateWeight = async (newWeight, newBf = '') => {
         const record = {
             date: new Date().toISOString(),
             weight: newWeight,
@@ -200,6 +246,15 @@ export const useHealth = () => {
         };
 
         setWeightHistory(prev => [record, ...prev]);
+
+        // Update current weight in profile
+        setUserData(prev => ({ ...prev, weight: newWeight }));
+
+        if (user) {
+            await supabase.auth.updateUser({
+                data: { weight: newWeight }
+            });
+        }
 
         // Calculate milestone rewards OUTSIDE state updater to avoid React loop
         const newlyRewardedMonths = [];
