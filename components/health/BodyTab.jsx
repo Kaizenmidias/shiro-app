@@ -230,6 +230,10 @@ export const BodyTab = ({ userData, profileData, weightHistory, updateUserData, 
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="p-3 bg-black/20 rounded-xl border border-white/5">
+                            <label className="text-[10px] text-[var(--text-muted)] uppercase block mb-1">Peso Inicial</label>
+                            <span className="text-white font-bold">{userData.startingWeight || userData.weight} kg</span>
+                        </div>
+                        <div className="p-3 bg-black/20 rounded-xl border border-white/5">
                             <label className="text-[10px] text-[var(--text-muted)] uppercase block mb-1">Altura</label>
                             <span className="text-white font-bold">{profileData.height} cm</span>
                         </div>
@@ -237,7 +241,7 @@ export const BodyTab = ({ userData, profileData, weightHistory, updateUserData, 
                             <label className="text-[10px] text-[var(--text-muted)] uppercase block mb-1">Idade</label>
                             <span className="text-white font-bold">{profileData.age} anos</span>
                         </div>
-                        <div className="p-3 bg-black/20 rounded-xl border border-white/5 col-span-2">
+                        <div className="p-3 bg-black/20 rounded-xl border border-white/5">
                             <label className="text-[10px] text-[var(--text-muted)] uppercase block mb-1">Sexo</label>
                             <span className="text-white font-bold capitalize">{profileData.sex === 'male' ? 'Masculino' : 'Feminino'}</span>
                         </div>
