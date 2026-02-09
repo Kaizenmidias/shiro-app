@@ -23,7 +23,7 @@ export const AuthScreen = () => {
         email: '',
         password: '',
         confirmPassword: '',
-        age: '',
+        birthDate: '',
         height: '',
         weight: '',
         sex: 'male',
@@ -52,13 +52,26 @@ export const AuthScreen = () => {
                     throw new Error('As senhas não coincidem.');
                 }
 
+                // Calculate age
+                let age = 0;
+                if (formData.birthDate) {
+                    const birth = new Date(formData.birthDate);
+                    const today = new Date();
+                    age = today.getFullYear() - birth.getFullYear();
+                    const m = today.getMonth() - birth.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+                        age--;
+                    }
+                }
+
                 await signup({ 
                     email: formData.email, 
                     password: formData.password,
                     options: {
                         data: {
                             name: formData.name,
-                            age: formData.age,
+                            birthDate: formData.birthDate,
+                            age: age,
                             height: formData.height,
                             weight: formData.weight,
                             sex: formData.sex,
@@ -72,7 +85,7 @@ export const AuthScreen = () => {
                 // Sync Onboarding Data
                 setUserName(formData.name);
                 completeOnboarding({
-                    age: formData.age,
+                    age: age,
                     height: formData.height,
                     weight: formData.weight,
                     sex: formData.sex
@@ -136,8 +149,8 @@ export const AuthScreen = () => {
                         </div>
                     )}
                     {!isLogin && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                            <div className="col-span-2">
+                        <div className="space-y-4">
+                            <div>
                                 <label className="text-[10px] text-[var(--primary)] font-black uppercase tracking-widest mb-2 block">Seu Nome</label>
                                 <div className="relative">
                                     <User className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--primary)]" size={18} />
@@ -153,14 +166,13 @@ export const AuthScreen = () => {
                             </div>
 
                             <div>
-                                <label className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2 block">Idade</label>
+                                <label className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2 block">Data de Nascimento</label>
                                 <input
-                                    type="number"
+                                    type="date"
                                     required={!isLogin}
-                                    className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-4 px-4 text-white focus:outline-none focus:border-[var(--primary)] transition-all"
-                                    placeholder="25"
-                                    value={formData.age}
-                                    onChange={e => setFormData({ ...formData, age: e.target.value })}
+                                    className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-4 px-4 text-white focus:outline-none focus:border-[var(--primary)] transition-all [color-scheme:dark]"
+                                    value={formData.birthDate}
+                                    onChange={e => setFormData({ ...formData, birthDate: e.target.value })}
                                 />
                             </div>
 
@@ -177,31 +189,32 @@ export const AuthScreen = () => {
                                 </select>
                             </div>
 
-                            <div>
-                                <label className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2 block">Altura (cm)</label>
-                                <input
-                                    type="number"
-                                    required={!isLogin}
-                                    className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-4 px-4 text-white focus:outline-none focus:border-[var(--primary)] transition-all"
-                                    placeholder="180"
-                                    value={formData.height}
-                                    onChange={e => setFormData({ ...formData, height: e.target.value })}
-                                />
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <label className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2 block">Peso (kg)</label>
+                                    <input
+                                        type="number"
+                                        required={!isLogin}
+                                        className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-4 px-4 text-white focus:outline-none focus:border-[var(--primary)] transition-all"
+                                        placeholder="80"
+                                        value={formData.weight}
+                                        onChange={e => setFormData({ ...formData, weight: e.target.value })}
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2 block">Altura (cm)</label>
+                                    <input
+                                        type="number"
+                                        required={!isLogin}
+                                        className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-4 px-4 text-white focus:outline-none focus:border-[var(--primary)] transition-all"
+                                        placeholder="180"
+                                        value={formData.height}
+                                        onChange={e => setFormData({ ...formData, height: e.target.value })}
+                                    />
+                                </div>
                             </div>
 
                             <div>
-                                <label className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2 block">Peso Atual (kg)</label>
-                                <input
-                                    type="number"
-                                    required={!isLogin}
-                                    className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-4 px-4 text-white focus:outline-none focus:border-[var(--primary)] transition-all"
-                                    placeholder="80"
-                                    value={formData.weight}
-                                    onChange={e => setFormData({ ...formData, weight: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="col-span-2">
                                 <label className="text-[10px] text-[var(--accent)] font-black uppercase tracking-widest mb-2 block italic text-center">Renda Mensal Estimada</label>
                                 <CurrencyInput
                                     value={formData.income}

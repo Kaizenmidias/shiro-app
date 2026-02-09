@@ -32,13 +32,15 @@ export const SettingsModal = ({ isOpen, onClose }) => {
             setTempPhoto(userPhoto);
             setTempWeight(userData.weight || '');
             setTempHeight(profileData.height || '');
+            // Initial age set, will be recalculated if birthDate is present
             setTempAge(profileData.age || '');
             setTempBirthDate(user?.user_metadata?.birthDate || '');
             setTempEmail(user?.email || '');
             setNewPassword('');
             setConfirmPassword('');
         }
-    }, [isOpen, userName, userPhoto, userData, profileData, user]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen]);
 
     // Calculate age from birthdate
     React.useEffect(() => {
