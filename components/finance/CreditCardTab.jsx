@@ -9,7 +9,7 @@ import { CurrencyInput } from './CurrencyInput';
 export const CreditCardTab = ({ cards, addCardPurchase, removeCardPurchase, payInstallment }) => {
     const { formatCurrency } = useGame();
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newPurchase, setNewPurchase] = useState({ name: '', value: 0, installments: 1 });
+    const [newPurchase, setNewPurchase] = useState({ title: '', value: 0, installments: 1 });
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -18,12 +18,12 @@ export const CreditCardTab = ({ cards, addCardPurchase, removeCardPurchase, payI
 
     const handleAdd = (e) => {
         e.preventDefault();
-        if (!newPurchase.name || newPurchase.value <= 0) return;
+        if (!newPurchase.title || newPurchase.value <= 0) return;
         addCardPurchase({
             ...newPurchase,
             installments: parseInt(newPurchase.installments)
         });
-        setNewPurchase({ name: '', value: 0, installments: 1 });
+        setNewPurchase({ title: '', value: 0, installments: 1 });
         setIsModalOpen(false);
     };
 
@@ -125,8 +125,8 @@ export const CreditCardTab = ({ cards, addCardPurchase, removeCardPurchase, payI
                                     type="text"
                                     placeholder="Ex: Celular, Amazon, Supermercado..."
                                     className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-lg p-4 text-white focus:outline-none focus:border-[#f97316]"
-                                    value={newPurchase.name}
-                                    onChange={e => setNewPurchase({ ...newPurchase, name: e.target.value })}
+                                    value={newPurchase.title}
+                                    onChange={e => setNewPurchase({ ...newPurchase, title: e.target.value })}
                                     autoFocus
                                 />
                             </div>

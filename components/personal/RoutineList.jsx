@@ -26,10 +26,15 @@ export const RoutineList = () => {
         customDays: []
     });
 
-    if (!mounted) return null;
+    if (!mounted) {
+        console.log('RoutineList: Waiting for mount');
+        return null;
+    }
 
     // Use tasks directly from hook to maintain manual order, but filter for today
-    const todaysTasks = getTodaysTasks();
+    const todaysTasks = getTodaysTasks ? getTodaysTasks() : [];
+    
+    console.log('RoutineList Render:', { todaysTasks, mounted });
 
     const handleOpenModal = (task = null) => {
         if (task) {

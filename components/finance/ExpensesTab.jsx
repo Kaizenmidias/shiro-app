@@ -9,7 +9,7 @@ import { CurrencyInput } from './CurrencyInput';
 export const ExpensesTab = ({ expenses, addExpense, toggleExpensePaid, removeExpense }) => {
     const { formatCurrency } = useGame();
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newExpense, setNewExpense] = useState({ name: '', value: 0 });
+    const [newExpense, setNewExpense] = useState({ title: '', value: 0 });
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -22,9 +22,9 @@ export const ExpensesTab = ({ expenses, addExpense, toggleExpensePaid, removeExp
 
     const handleAdd = (e) => {
         e.preventDefault();
-        if (!newExpense.name || newExpense.value <= 0) return;
+        if (!newExpense.title || newExpense.value <= 0) return;
         addExpense({ ...newExpense });
-        setNewExpense({ name: '', value: 0 });
+        setNewExpense({ title: '', value: 0 });
         setIsModalOpen(false);
     };
 
@@ -111,8 +111,8 @@ export const ExpensesTab = ({ expenses, addExpense, toggleExpensePaid, removeExp
                                     type="text"
                                     placeholder="Ex: Aluguel, Internet..."
                                     className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-lg p-4 text-white focus:outline-none focus:border-[var(--primary)]"
-                                    value={newExpense.name}
-                                    onChange={e => setNewExpense({ ...newExpense, name: e.target.value })}
+                                    value={newExpense.title}
+                                    onChange={e => setNewExpense({ ...newExpense, title: e.target.value })}
                                     autoFocus
                                 />
                             </div>
