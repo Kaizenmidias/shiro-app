@@ -49,7 +49,14 @@ export const RoutineList = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!taskData.title) return;
+        
+        // Validation
+        if (!taskData.title || !taskData.title.trim()) {
+            console.warn('Tentativa de criar tarefa sem título');
+            return;
+        }
+
+        console.log('Criando/Editando tarefa:', taskData);
 
         // Calculate days based on frequency
         let days = [];
@@ -63,6 +70,7 @@ export const RoutineList = () => {
 
         const finalTaskData = {
             ...taskData,
+            title: taskData.title.trim(), // Sanitize
             days // Ensure 'days' property is set for getTodaysTasks filter
         };
 
@@ -74,6 +82,8 @@ export const RoutineList = () => {
 
         setIsModalOpen(false);
         setEditingTask(null);
+        // Reset form completely
+        setTaskData({ title: '', time: '', frequency: 'everyday', customDays: [] });
     };
 
     const toggleDay = (dayId) => {

@@ -159,7 +159,15 @@ export const SettingsModal = ({ isOpen, onClose }) => {
                 height: tempHeight,
                 age: tempAge
             };
-            await supabase.auth.updateUser({ data: metadataUpdates });
+            const { data: updateData, error: updateError } = await supabase.auth.updateUser({ data: metadataUpdates });
+            
+            if (updateError) {
+                console.error('Erro ao atualizar metadata do usuário:', updateError);
+                throw new Error('Falha ao salvar dados do perfil.');
+            }
+
+            // Force refresh session to ensure metadata is up to date
+            await supabase.auth.refreshSession();
 
             if (tempEmail && tempEmail !== user?.email) {
                 await supabase.auth.updateUser({ email: tempEmail });

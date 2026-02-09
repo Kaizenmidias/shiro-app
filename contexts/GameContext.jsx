@@ -34,10 +34,29 @@ export const GameProvider = ({ children }) => {
             if (name) {
                 setUserName(name);
                 setUserPhoto(current => {
-                    if (avatarUrl && !avatarUrl.startsWith('blob:')) return avatarUrl;
-                    // Se já tiver uma foto customizada (não DiceBear), mantém ela para evitar sobrescrever com avatar padrão
-                    // Isso ajuda quando o upload local ocorre mas o user_metadata ainda não sincronizou
+                    console.log('GameContext: Resolving avatar...', { metadataUrl: avatarUrl, currentUrl: current });
+                    
+                    // 1. Prioritize Valid Supabase URL from Metadata
+                    if (avatarUrl && !avatarUrl.startsWith('blob:') && avatarUrl.includes('supabase')) {
+                         console.log('GameContext: Using metadata avatar (Supabase)');
+                         return avatarUrl;
+                    }
+
+                    // 2. Fallback to Valid Local State (if metadata is missing/old but we have a good local one)
+                    // If current is a Supabase URL and metadata is missing or DiceBear, stick with current
+                    if (current && current.includes('supabase') && !current.startsWith('blob:')) {
+                         console.log('GameContext: Keeping current local avatar (Supabase) over metadata');
+                         return current;
+                    }
+
+                    // 3. Use other valid metadata URL (external, etc)
+                    if (avatarUrl && !avatarUrl.startsWith('blob:')) {
+                        return avatarUrl;
+                    }
+
+                    // 4. Default DiceBear
                     if (current && !current.includes('dicebear') && !current.startsWith('blob:')) return current;
+                    
                     return `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
                 });
             }
