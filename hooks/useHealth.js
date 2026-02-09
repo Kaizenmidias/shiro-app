@@ -175,8 +175,51 @@ export const useHealth = () => {
             if (meta.age && userAge !== meta.age) setUserAge(meta.age);
             if (meta.height && userHeight !== meta.height) setUserHeight(meta.height);
             if (meta.sex && userSex !== meta.sex) setUserSex(meta.sex);
+
+            // Sync complex objects from cloud if available
+            if (meta.dietPlan) {
+                // Check deep equality to avoid loop
+                if (JSON.stringify(dietPlan) !== JSON.stringify(meta.dietPlan)) {
+                    setDietPlan(meta.dietPlan);
+                }
+            }
+            if (meta.workoutPlan) {
+                 if (JSON.stringify(workoutPlan) !== JSON.stringify(meta.workoutPlan)) {
+                    setWorkoutPlan(meta.workoutPlan);
+                 }
+            }
+            if (meta.weightHistory) {
+                 if (JSON.stringify(weightHistory) !== JSON.stringify(meta.weightHistory)) {
+                    setWeightHistory(meta.weightHistory);
+                 }
+            }
         }
     }, [user, setUserAge, setUserHeight, setUserSex]);
+
+    // Sync Health Data to Supabase
+    useEffect(() => {
+        if (mounted && user) {
+            const timer = setTimeout(() => {
+                const meta = user.user_metadata || {};
+                
+                // Only update if there are changes to avoid loop
+                const dietChanged = JSON.stringify(dietPlan) !== JSON.stringify(meta.dietPlan);
+                const workoutChanged = JSON.stringify(workoutPlan) !== JSON.stringify(meta.workoutPlan);
+                const historyChanged = JSON.stringify(weightHistory) !== JSON.stringify(meta.weightHistory);
+
+                if (dietChanged || workoutChanged || historyChanged) {
+                    supabase.auth.updateUser({
+                        data: {
+                            dietPlan,
+                            workoutPlan,
+                            weightHistory
+                        }
+                    }).catch(err => console.error('Failed to sync health stats:', err));
+                }
+            }, 4000); // 4s debounce
+            return () => clearTimeout(timer);
+        }
+    }, [dietPlan, workoutPlan, weightHistory, user, mounted]);
 
     const updateUserData = async (data) => {
         setUserData(prev => ({ ...prev, ...data }));

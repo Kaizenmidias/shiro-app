@@ -99,6 +99,16 @@ export const RoutineProvider = ({ children }) => {
         if (user) supabase.auth.updateUser({ data: { routine: orderedTasks } });
     };
 
+    // Load tasks from Supabase when user loads
+    useEffect(() => {
+        if (user?.user_metadata?.routine) {
+            console.log('Carregando rotina do Supabase:', user.user_metadata.routine.length, 'tarefas');
+            setTasks(user.user_metadata.routine);
+            // Update local storage to match cloud
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(user.user_metadata.routine));
+        }
+    }, [user]);
+
     // Check alarms
     const checkAlarms = () => {
         if (!('Notification' in window) || Notification.permission !== 'granted') return;

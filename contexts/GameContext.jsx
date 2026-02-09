@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
+import { supabase } from '../lib/supabaseClient';
 
 const GameContext = createContext();
 
@@ -30,7 +31,32 @@ export const GameProvider = ({ children }) => {
 
     useEffect(() => {
         if (user?.user_metadata) {
-            const { name, age, height, sex, avatarUrl } = user.user_metadata;
+            const { name, age, height, sex, avatarUrl, gameStats: remoteStats, history: remoteHistory } = user.user_metadata;
+            
+            // Sync Game Stats from Cloud
+            if (remoteStats) {
+                setGameStats(current => {
+                     // Avoid reset if local has more progress (optional conflict resolution?)
+                     // For now, cloud is truth source for multi-device
+                     if (JSON.stringify(current) !== JSON.stringify(remoteStats)) {
+                         console.log('GameContext: Syncing stats from Supabase', remoteStats);
+                         return remoteStats;
+                     }
+                     return current;
+                });
+            }
+
+            // Sync History from Cloud
+            if (remoteHistory) {
+                setHistory(current => {
+                    if (JSON.stringify(current) !== JSON.stringify(remoteHistory)) {
+                         console.log('GameContext: Syncing history from Supabase');
+                         return remoteHistory;
+                    }
+                    return current;
+                });
+            }
+
             if (name) {
                 setUserName(name);
                 setUserPhoto(current => {
@@ -109,6 +135,29 @@ export const GameProvider = ({ children }) => {
             localStorage.setItem('gamification_user_sex', userSex);
         }
     }, [history, userName, userPhoto, userAge, userHeight, userSex, mounted]);
+
+    // Sync Game Stats & History to Supabase
+    useEffect(() => {
+        if (mounted && user) {
+            const timer = setTimeout(() => {
+                // Check if data is different from metadata before sending request to avoid loops/waste
+                const meta = user.user_metadata || {};
+                const statsChanged = JSON.stringify(gameStats) !== JSON.stringify(meta.gameStats);
+                // For history, just check length or first item for optimization
+                const historyChanged = JSON.stringify(history) !== JSON.stringify(meta.history);
+
+                if (statsChanged || historyChanged) {
+                    supabase.auth.updateUser({
+                        data: {
+                            gameStats,
+                            history: history.slice(0, 50) // Limit to last 50 items to prevent metadata overflow
+                        }
+                    }).catch(err => console.error('Failed to sync game stats:', err));
+                }
+            }, 2000); // 2s debounce
+            return () => clearTimeout(timer);
+        }
+    }, [gameStats, history, user, mounted]);
 
     const { points, rankIndex } = gameStats;
     const currentRank = RANKS[rankIndex] || RANKS[0];
