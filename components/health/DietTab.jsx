@@ -299,8 +299,17 @@ export const DietTab = ({ dietPlan, setDietPlan, generateDiet, mounted }) => {
                                                                 />
                                                             </div>
                                                         </div>
-                                                        <div className="mt-2 text-right">
-                                                            <span className="text-[10px] font-bold text-orange-400/60">{item.calSum} kcal</span>
+                                                        <div className="mt-2 flex justify-end items-center gap-2">
+                                                            <span className="text-[9px] uppercase text-[var(--text-muted)] font-bold">Calorias</span>
+                                                            <div className="flex items-center gap-1">
+                                                                <input
+                                                                    type="number"
+                                                                    className="w-16 bg-black/60 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-orange-400 focus:border-orange-500 outline-none font-bold text-right"
+                                                                    value={item.calSum}
+                                                                    onChange={e => handleUpdateItem(i, 'calSum', e.target.value)}
+                                                                />
+                                                                <span className="text-[10px] text-orange-400/60 font-bold">kcal</span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 ))}
@@ -527,6 +536,18 @@ export const DietTab = ({ dietPlan, setDietPlan, generateDiet, mounted }) => {
                                                                     value={item.fats}
                                                                     onChange={e => handleUpdateItem(i, 'fats', e.target.value)}
                                                                 />
+                                                            </div>
+                                                        </div>
+                                                        <div className="mt-2 flex justify-end items-center gap-2">
+                                                            <span className="text-[8px] uppercase text-[var(--text-muted)] font-bold">Calorias</span>
+                                                            <div className="flex items-center gap-1">
+                                                                <input
+                                                                    type="number"
+                                                                    className="w-14 bg-black/60 border border-white/10 rounded px-1.5 py-0.5 text-[10px] text-orange-400 focus:border-orange-500 outline-none font-bold text-right"
+                                                                    value={item.calSum}
+                                                                    onChange={e => handleUpdateItem(i, 'calSum', e.target.value)}
+                                                                />
+                                                                <span className="text-[9px] text-orange-400/60 font-bold">kcal</span>
                                                             </div>
                                                         </div>
                                                     </div>
