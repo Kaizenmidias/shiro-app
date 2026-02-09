@@ -163,7 +163,9 @@ export const SettingsModal = ({ isOpen, onClose }) => {
             
             if (updateError) {
                 console.error('Erro ao atualizar metadata do usuário:', updateError);
-                throw new Error('Falha ao salvar dados do perfil.');
+                // We won't block the UI if the photo upload worked but metadata sync failed
+                // But we should warn the user.
+                throw new Error(`Aviso: Foto salva, mas houve erro ao atualizar dados da conta: ${updateError.message}`);
             }
 
             // Force refresh session to ensure metadata is up to date
