@@ -471,12 +471,13 @@ export const SettingsModal = ({ isOpen, onClose }) => {
                             </div>
 
                             {errorMsg && (
-                                <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-xl text-sm text-center">
+                                <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-xs">
                                     {errorMsg}
                                 </div>
                             )}
+
                             {successMsg && (
-                                <div className="bg-green-500/10 border border-green-500/50 text-green-500 p-3 rounded-xl text-sm text-center">
+                                <div className="p-3 rounded-lg bg-green-500/20 border border-green-500/50 text-green-200 text-xs">
                                     {successMsg}
                                 </div>
                             )}
@@ -502,7 +503,6 @@ export const SettingsModal = ({ isOpen, onClose }) => {
                     </>
                 )}
                 </div>
-            </div>
             </div>
         </div>
     );
