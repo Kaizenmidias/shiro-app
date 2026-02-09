@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { Calendar, TrendingUp, TrendingDown, ArrowRight, Filter } from 'lucide-react';
 import { useGame } from '../../contexts/GameContext';
+import { DateInput } from '../ui/DateInput';
 
 export const FinancialHistory = ({ history = [], currentExpenses = [], currentShopping = [], income = 0 }) => {
     const { formatCurrency } = useGame();
@@ -97,18 +98,16 @@ export const FinancialHistory = ({ history = [], currentExpenses = [], currentSh
                         <Calendar size={12} /> Período
                     </label>
                     <div className="flex items-center gap-2">
-                        <input
-                            type="date"
+                        <DateInput
                             value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            className="bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-lg p-2 text-xs text-white focus:outline-none focus:border-[var(--primary)] [color-scheme:dark]"
+                            onChange={setStartDate}
+                            className="bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-lg p-2 text-xs text-white focus:outline-none focus:border-[var(--primary)] w-28 text-center"
                         />
                         <span className="text-[var(--text-muted)]">-</span>
-                        <input
-                            type="date"
+                        <DateInput
                             value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-lg p-2 text-xs text-white focus:outline-none focus:border-[var(--primary)] [color-scheme:dark]"
+                            onChange={setEndDate}
+                            className="bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-lg p-2 text-xs text-white focus:outline-none focus:border-[var(--primary)] w-28 text-center"
                         />
                     </div>
                 </div>

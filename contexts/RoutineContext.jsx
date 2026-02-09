@@ -72,12 +72,31 @@ export const RoutineProvider = ({ children }) => {
         if (user) supabase.auth.updateUser({ data: { routine: newTasks } });
     };
 
-    // Update task time
-    const updateTaskTime = (id, newTime) => {
-        const newTasks = tasks.map(t => t.id === id ? { ...t, time: newTime } : t);
+    // Update task
+    const updateTask = (updatedTask) => {
+        const newTasks = tasks.map(t => t.id === updatedTask.id ? updatedTask : t);
         setTasks(newTasks);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(newTasks));
         if (user) supabase.auth.updateUser({ data: { routine: newTasks } });
+    };
+
+    // Move task
+    const moveTask = (id, direction) => {
+        const index = tasks.findIndex(t => t.id === id);
+        if (index === -1) return;
+        
+        const newTasks = [...tasks];
+        if (direction === 'up' && index > 0) {
+            [newTasks[index], newTasks[index - 1]] = [newTasks[index - 1], newTasks[index]];
+        } else if (direction === 'down' && index < newTasks.length - 1) {
+            [newTasks[index], newTasks[index + 1]] = [newTasks[index + 1], newTasks[index]];
+        }
+        
+        // Re-assign order based on index
+        const orderedTasks = newTasks.map((t, idx) => ({ ...t, order: idx }));
+        setTasks(orderedTasks);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(orderedTasks));
+        if (user) supabase.auth.updateUser({ data: { routine: orderedTasks } });
     };
 
     // Check alarms
@@ -179,8 +198,11 @@ export const RoutineProvider = ({ children }) => {
             addTask,
             toggleTask,
             deleteTask,
-            updateTaskTime,
-            getTodaysTasks
+            removeTask: deleteTask,
+            updateTask,
+            moveTask,
+            getTodaysTasks,
+            mounted
         }}>
             {children}
         </RoutineContext.Provider>

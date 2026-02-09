@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Utensils, RefreshCw, Plus, Edit2, Trash2, Check, X, Flame, Search, ChevronRight, Clock } from 'lucide-react';
+import { Utensils, RefreshCw, Plus, Edit2, Trash2, Check, X, Flame, Search, ChevronRight, Clock, AlertCircle, Droplets, Wheat, Beef } from 'lucide-react';
 import { TimeInput } from '../ui/TimeInput';
 import nutritionData from '../../data/nutritionData.json';
 
-export const DietTab = ({ dietPlan, setDietPlan, generateDiet, userData }) => {
+export const DietTab = ({ dietPlan, setDietPlan, generateDiet, mounted }) => {
     const [editingIdx, setEditingIdx] = useState(null);
     const [isAdding, setIsAdding] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');

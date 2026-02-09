@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useAgenda } from '../../hooks/useAgenda';
 import { ChevronLeft, ChevronRight, Plus, Trash2, Clock, MapPin } from 'lucide-react';
+import { TimeInput } from '../ui/TimeInput';
 
 const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -169,11 +170,10 @@ export const CalendarView = () => {
                                 autoFocus
                             />
                             <div className="grid grid-cols-2 gap-4">
-                                <input
-                                    type="time"
+                                <TimeInput
                                     className="bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-lg p-3 text-white focus:outline-none focus:border-[var(--primary)]"
                                     value={newEvent.time}
-                                    onChange={e => setNewEvent({ ...newEvent, time: e.target.value })}
+                                    onChange={val => setNewEvent({ ...newEvent, time: val })}
                                 />
                                 <input
                                     type="text"
