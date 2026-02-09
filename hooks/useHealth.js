@@ -128,11 +128,13 @@ export const useHealth = () => {
     useEffect(() => {
         if (mounted && user && dietPlan) {
             const saveDiet = async () => {
-                await supabase.from('health_diet_plans').upsert({
+                const { error } = await supabase.from('health_diet_plans').upsert({
                     user_id: user.id,
                     plan_data: dietPlan,
                     updated_at: new Date()
-                });
+                }, { onConflict: 'user_id' });
+                
+                if (error) console.error('Error saving diet plan:', error);
             };
             const timer = setTimeout(saveDiet, 2000); // Debounce
             return () => clearTimeout(timer);
@@ -143,11 +145,13 @@ export const useHealth = () => {
     useEffect(() => {
         if (mounted && user && workoutPlan) {
             const saveWorkout = async () => {
-                await supabase.from('health_workout_plans').upsert({
+                const { error } = await supabase.from('health_workout_plans').upsert({
                     user_id: user.id,
                     plan_data: workoutPlan,
                     updated_at: new Date()
-                });
+                }, { onConflict: 'user_id' });
+
+                if (error) console.error('Error saving workout plan:', error);
             };
             const timer = setTimeout(saveWorkout, 2000); // Debounce
             return () => clearTimeout(timer);
@@ -424,6 +428,17 @@ export const useHealth = () => {
         });
 
         setDietPlan(newPlan);
+        
+        // Save immediately to avoid debounce data loss on navigation
+        if (user) {
+            supabase.from('health_diet_plans').upsert({
+                user_id: user.id,
+                plan_data: newPlan,
+                updated_at: new Date()
+            }, { onConflict: 'user_id' }).then(({ error }) => {
+                if (error) console.error('Error saving generated diet:', error);
+            });
+        }
     };
 
     const generateWorkout = (daysPerWeek = 3) => {
@@ -544,6 +559,17 @@ export const useHealth = () => {
         };
 
         setWorkoutPlan(newPlan);
+
+        // Save immediately to avoid debounce data loss on navigation
+        if (user) {
+            supabase.from('health_workout_plans').upsert({
+                user_id: user.id,
+                plan_data: newPlan,
+                updated_at: new Date()
+            }, { onConflict: 'user_id' }).then(({ error }) => {
+                if (error) console.error('Error saving generated workout:', error);
+            });
+        }
     };
 
 

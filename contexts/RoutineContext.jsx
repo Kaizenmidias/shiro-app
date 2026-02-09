@@ -20,7 +20,10 @@ export const RoutineProvider = ({ children }) => {
     // Load tasks from Supabase when user loads
     useEffect(() => {
         const loadRoutine = async () => {
-            if (!user) return;
+            if (!user) {
+                setMounted(true);
+                return;
+            }
             
             try {
                 const { data, error } = await supabase
@@ -30,13 +33,12 @@ export const RoutineProvider = ({ children }) => {
                     .order('order', { ascending: true });
 
                 if (data) {
-                    // Check if we have tasks. If not, maybe migrate from metadata? 
-                    // (Optional: for now just use DB)
-                    if (data.length === 0 && user.user_metadata?.routine) {
-                         // One-time migration could go here, but let's stick to DB first
-                         // to avoid "zombie" tasks returning.
-                    }
-                    setTasks(data);
+                    // Normalize data (snake_case to camelCase for internal use)
+                    const normalizedTasks = data.map(task => ({
+                        ...task,
+                        customDays: task.custom_days || []
+                    }));
+                    setTasks(normalizedTasks);
                 } else if (error) {
                     console.error('Error loading routine:', error);
                 }
@@ -53,13 +55,13 @@ export const RoutineProvider = ({ children }) => {
     const getTodaysTasks = () => {
         if (!tasks) return [];
         const today = new Date().getDay(); // 0 = Sunday
-        // Filter by day AND ensure not completed if reset logic applies (handled by effect below)
-        // Actually, just filtering by day is enough, completion is state.
         return tasks.filter(task => {
             if (task.frequency === 'everyday') return true;
             if (task.frequency === 'workdays') return today >= 1 && today <= 5;
-            if (task.frequency === 'custom' && task.customDays) return task.customDays.includes(today);
-            return false; // Fallback
+            // Support both camelCase (optimistic) and snake_case (DB) or normalized
+            const days = task.customDays || task.custom_days;
+            if (task.frequency === 'custom' && Array.isArray(days)) return days.includes(today);
+            return false; 
         }).sort((a, b) => (a.order || 0) - (b.order || 0));
     };
 

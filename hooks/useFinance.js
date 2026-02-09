@@ -203,7 +203,13 @@ export const useFinance = () => {
     const addExpense = async (expense) => {
         if (!user) return;
         const tempId = `temp_${Date.now()}`;
-        const newExpense = { ...expense, id: tempId, paid: false };
+        
+        // Ensure value is a number
+        const numericValue = typeof expense.value === 'string' 
+            ? parseFloat(expense.value.replace(',', '.')) 
+            : expense.value;
+
+        const newExpense = { ...expense, id: tempId, paid: false, value: numericValue };
         setExpenses(prev => [...prev, newExpense]);
 
         const { data, error } = await supabase.from('finance_transactions').insert({
@@ -211,7 +217,7 @@ export const useFinance = () => {
             type: 'expense',
             category: 'Fixo',
             title: expense.title,
-            value: expense.value,
+            value: numericValue,
             is_recurring_fixed: true,
             is_paid: false
         }).select().single();
@@ -244,7 +250,13 @@ export const useFinance = () => {
     const addItemToShop = async (item) => {
         if (!user) return;
         const tempId = `temp_${Date.now()}`;
-        const newItem = { ...item, id: tempId, bought: true, value: parseFloat(item.value) || 0, date: new Date().toISOString() };
+        
+        // Ensure value is a number
+        const numericValue = typeof item.value === 'string' 
+            ? parseFloat(item.value.replace(',', '.')) 
+            : item.value;
+
+        const newItem = { ...item, id: tempId, bought: true, value: numericValue || 0, date: new Date().toISOString() };
         setShoppingList(prev => [...prev, newItem]);
 
         const { data, error } = await supabase.from('finance_transactions').insert({
@@ -252,7 +264,7 @@ export const useFinance = () => {
             type: 'expense',
             category: 'Compras',
             title: item.title,
-            value: parseFloat(item.value) || 0,
+            value: numericValue || 0,
             is_shopping_item: true,
             is_paid: true, // Bought immediately?
             date: newItem.date
@@ -261,6 +273,7 @@ export const useFinance = () => {
         if (data) {
             setShoppingList(prev => prev.map(i => i.id === tempId ? { ...i, id: data.id } : i));
         } else if (error) {
+            console.error('Error adding shopping item:', error);
             setShoppingList(prev => prev.filter(i => i.id !== tempId));
         }
     };
@@ -276,13 +289,19 @@ export const useFinance = () => {
     const addCardPurchase = async (purchase) => {
         if (!user) return;
         const tempId = `temp_${Date.now()}`;
-        const newCard = { ...purchase, id: tempId, paidInstallments: 0, paidThisMonth: false, value: purchase.value }; // use value in state
+        
+        // Ensure value is a number
+        const numericValue = typeof purchase.value === 'string' 
+            ? parseFloat(purchase.value.replace(',', '.')) 
+            : purchase.value;
+
+        const newCard = { ...purchase, id: tempId, paidInstallments: 0, paidThisMonth: false, value: numericValue }; // use value in state
         setCards(prev => [...prev, newCard]);
 
         const { data, error } = await supabase.from('finance_cards').insert({
             user_id: user.id,
             title: purchase.title,
-            total_value: purchase.value,
+            total_value: numericValue,
             installments: purchase.installments,
             paid_installments: 0,
             paid_this_month: false
@@ -291,6 +310,7 @@ export const useFinance = () => {
         if (data) {
              setCards(prev => prev.map(c => c.id === tempId ? { ...c, id: data.id } : c));
         } else if (error) {
+             console.error('Error adding card purchase:', error);
              setCards(prev => prev.filter(c => c.id !== tempId));
         }
     };
