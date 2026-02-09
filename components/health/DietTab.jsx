@@ -268,7 +268,15 @@ export const DietTab = ({ dietPlan, setDietPlan, generateDiet, mounted }) => {
                                                                         value={item.amount}
                                                                         onChange={e => handleUpdateItem(i, 'amount', e.target.value)}
                                                                     />
-                                                                    <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-tighter whitespace-nowrap">{item.unit === 'g' || item.unit.includes('100ml') ? 'g/ml' : 'un'}</span>
+                                                                    <select
+                                                                        className="bg-transparent text-[10px] text-[var(--text-muted)] uppercase tracking-tighter font-bold focus:outline-none appearance-none cursor-pointer hover:text-white transition-colors text-right min-w-[30px]"
+                                                                        value={item.unit === 'un' ? 'un' : (item.unit && item.unit.includes('ml') ? 'ml' : 'g')}
+                                                                        onChange={e => handleUpdateItem(i, 'unit', e.target.value)}
+                                                                    >
+                                                                        <option value="g" className="bg-[#1a1c1e] text-white">G</option>
+                                                                        <option value="ml" className="bg-[#1a1c1e] text-white">ML</option>
+                                                                        <option value="un" className="bg-[#1a1c1e] text-white">UN</option>
+                                                                    </select>
                                                                 </div>
                                                             </div>
                                                             <div className="flex flex-col gap-1">
@@ -503,12 +511,23 @@ export const DietTab = ({ dietPlan, setDietPlan, generateDiet, mounted }) => {
                                                         <div className="grid grid-cols-4 gap-2">
                                                             <div className="flex flex-col gap-1">
                                                                 <span className="text-[8px] uppercase text-[var(--text-muted)]">Qtd</span>
-                                                                <input
-                                                                    type="number"
-                                                                    className="w-full bg-black/40 border border-white/10 rounded px-1.5 py-0.5 text-[10px] text-center"
-                                                                    value={item.amount}
-                                                                    onChange={e => handleUpdateItem(i, 'amount', e.target.value)}
-                                                                />
+                                                                <div className="flex items-center bg-black/40 border border-white/10 rounded px-1 py-0.5">
+                                                                    <input
+                                                                        type="number"
+                                                                        className="w-full bg-transparent text-[10px] text-center focus:outline-none"
+                                                                        value={item.amount}
+                                                                        onChange={e => handleUpdateItem(i, 'amount', e.target.value)}
+                                                                    />
+                                                                    <select
+                                                                        className="bg-transparent text-[8px] text-[var(--text-muted)] uppercase font-bold focus:outline-none appearance-none cursor-pointer hover:text-white transition-colors text-right"
+                                                                        value={item.unit === 'un' ? 'un' : (item.unit && item.unit.includes('ml') ? 'ml' : 'g')}
+                                                                        onChange={e => handleUpdateItem(i, 'unit', e.target.value)}
+                                                                    >
+                                                                        <option value="g" className="bg-[#1a1c1e] text-white">G</option>
+                                                                        <option value="ml" className="bg-[#1a1c1e] text-white">ML</option>
+                                                                        <option value="un" className="bg-[#1a1c1e] text-white">UN</option>
+                                                                    </select>
+                                                                </div>
                                                             </div>
                                                             <div className="flex flex-col gap-1">
                                                                 <span className="text-[8px] uppercase text-emerald-500/60">P</span>
