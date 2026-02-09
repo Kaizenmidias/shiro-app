@@ -34,10 +34,10 @@ export const GameProvider = ({ children }) => {
             if (name) {
                 setUserName(name);
                 setUserPhoto(current => {
-                    if (avatarUrl) return avatarUrl;
+                    if (avatarUrl && !avatarUrl.startsWith('blob:')) return avatarUrl;
                     // Se já tiver uma foto customizada (não DiceBear), mantém ela para evitar sobrescrever com avatar padrão
                     // Isso ajuda quando o upload local ocorre mas o user_metadata ainda não sincronizou
-                    if (current && !current.includes('dicebear')) return current;
+                    if (current && !current.includes('dicebear') && !current.startsWith('blob:')) return current;
                     return `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
                 });
             }
@@ -60,7 +60,7 @@ export const GameProvider = ({ children }) => {
         if (savedStats) setGameStats(JSON.parse(savedStats));
         if (savedHistory) setHistory(JSON.parse(savedHistory));
         if (savedName) setUserName(savedName);
-        if (savedPhoto) setUserPhoto(savedPhoto);
+        if (savedPhoto && !savedPhoto.startsWith('blob:')) setUserPhoto(savedPhoto);
         if (savedAge) setUserAge(savedAge);
         if (savedHeight) setUserHeight(savedHeight);
         if (savedSex) setUserSex(savedSex);

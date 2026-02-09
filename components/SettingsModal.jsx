@@ -63,9 +63,24 @@ export const SettingsModal = ({ isOpen, onClose }) => {
         setErrorMsg('');
         setSuccessMsg('');
         try {
-            let finalPhoto = tempPhoto;
-            const uploadedUrl = await uploadPhotoIfNeeded();
-            if (uploadedUrl) finalPhoto = uploadedUrl;
+            let finalPhoto = userPhoto; // Default to current photo
+
+            if (photoFile) {
+                // User uploaded a new file
+                const uploadedUrl = await uploadPhotoIfNeeded();
+                if (!uploadedUrl) {
+                    throw new Error('Falha ao fazer upload da imagem. Tente novamente.');
+                }
+                finalPhoto = uploadedUrl;
+            } else if (tempPhoto !== userPhoto) {
+                // User changed photo (e.g. generated avatar) but didn't upload file
+                finalPhoto = tempPhoto;
+            }
+
+            // Safety check: never save blob URLs
+            if (finalPhoto && typeof finalPhoto === 'string' && finalPhoto.startsWith('blob:')) {
+                throw new Error('Erro ao processar imagem. Por favor, tente novamente.');
+            }
 
             setUserName(tempName);
             setUserPhoto(finalPhoto);
