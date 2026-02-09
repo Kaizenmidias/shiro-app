@@ -2,14 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { CreditCard, Plus, X, Trash2, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { CreditCard, Plus, X, Trash2, ChevronLeft, ChevronRight, Calendar, Pencil, Undo2 } from 'lucide-react';
 import { useGame } from '../../contexts/GameContext';
 import { CurrencyInput } from './CurrencyInput';
 
-export const CreditCardTab = ({ cards, addCardPurchase, removeCardPurchase, payInstallment }) => {
+export const CreditCardTab = ({ cards, addCardPurchase, removeCardPurchase, payInstallment, unpayInstallment, updateCardPurchase }) => {
     const { formatCurrency } = useGame();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newPurchase, setNewPurchase] = useState({ title: '', value: 0, installments: 1 });
+    const [editingId, setEditingId] = useState(null);
     const [mounted, setMounted] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -20,12 +21,38 @@ export const CreditCardTab = ({ cards, addCardPurchase, removeCardPurchase, payI
     const handleAdd = (e) => {
         e.preventDefault();
         if (!newPurchase.title || newPurchase.value <= 0) return;
-        addCardPurchase({
-            ...newPurchase,
-            installments: parseInt(newPurchase.installments)
-        });
+        
+        if (editingId) {
+            updateCardPurchase(editingId, {
+                ...newPurchase,
+                installments: parseInt(newPurchase.installments)
+            });
+        } else {
+            addCardPurchase({
+                ...newPurchase,
+                installments: parseInt(newPurchase.installments)
+            });
+        }
+        
         setNewPurchase({ title: '', value: 0, installments: 1 });
+        setEditingId(null);
         setIsModalOpen(false);
+    };
+
+    const openEditModal = (card) => {
+        setNewPurchase({
+            title: card.title,
+            value: card.value, // value is total_value
+            installments: card.installments
+        });
+        setEditingId(card.id);
+        setIsModalOpen(true);
+    };
+
+    const openNewModal = () => {
+        setNewPurchase({ title: '', value: 0, installments: 1 });
+        setEditingId(null);
+        setIsModalOpen(true);
     };
 
     // Navigation
@@ -186,23 +213,46 @@ export const CreditCardTab = ({ cards, addCardPurchase, removeCardPurchase, payI
                             </div>
 
                             {/* Only show action buttons if it's the current month and not paid */}
-                            {isCurrentMonth() && card.status !== 'paid' && (
-                                <button
-                                    onClick={() => payInstallment(card.id)}
-                                    className="w-full mt-2 text-sm py-3 rounded-lg bg-[var(--surface-highlight)] hover:bg-[#f97316]/20 text-[#f97316] border border-transparent hover:border-[#f97316] font-bold uppercase tracking-wider transition-all"
-                                >
-                                    Pagar Parcela do Mês
-                                </button>
+                            {isCurrentMonth() && (
+                                <div className="mt-2 space-y-2">
+                                    {card.status !== 'paid' ? (
+                                        <button
+                                            onClick={() => payInstallment(card.id)}
+                                            className="w-full text-sm py-3 rounded-lg bg-[var(--surface-highlight)] hover:bg-[#f97316]/20 text-[#f97316] border border-transparent hover:border-[#f97316] font-bold uppercase tracking-wider transition-all"
+                                        >
+                                            Pagar Parcela do Mês
+                                        </button>
+                                    ) : (
+                                        // If paid this month (check paidThisMonth flag for current installment), allow undo
+                                        (card.paidThisMonth && card.paidInstallments === card.installmentNumber) && (
+                                            <button
+                                                onClick={() => unpayInstallment(card.id)}
+                                                className="w-full text-sm py-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 hover:border-emerald-500 font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                                            >
+                                                <Undo2 size={16} /> Desfazer Pagamento
+                                            </button>
+                                        )
+                                    )}
+                                </div>
                             )}
                             
-                            {/* Allow delete always (maybe restricted?) - Keeping it simple */}
-                            <button
-                                onClick={() => removeCardPurchase(card.id)}
-                                className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-all p-2 bg-black/50 rounded-full"
-                                title="Excluir Compra"
-                            >
-                                <Trash2 size={16} />
-                            </button>
+                            {/* Action Buttons: Edit & Delete */}
+                            <div className="absolute top-4 right-4 flex gap-2 z-20">
+                                <button
+                                    onClick={() => openEditModal(card)}
+                                    className="text-[var(--text-muted)] hover:text-[#f97316] opacity-0 group-hover:opacity-100 transition-all p-2 bg-black/50 rounded-full"
+                                    title="Editar Compra"
+                                >
+                                    <Pencil size={16} />
+                                </button>
+                                <button
+                                    onClick={() => removeCardPurchase(card.id)}
+                                    className="text-[var(--text-muted)] hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-all p-2 bg-black/50 rounded-full"
+                                    title="Excluir Compra"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
                         </div>
                     ))
                 )}
@@ -210,8 +260,8 @@ export const CreditCardTab = ({ cards, addCardPurchase, removeCardPurchase, payI
 
             {/* Floating Action Button */}
             <button
-                onClick={() => setIsModalOpen(true)}
-                className="fixed bottom-24 right-6 bg-[#f97316] text-white p-4 rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.4)] hover:scale-110 active:scale-95 transition-all z-40"
+                onClick={openNewModal}
+                className="fixed bottom-6 right-6 md:bottom-10 bg-[#f97316] text-white p-4 rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.4)] hover:scale-110 active:scale-95 transition-all z-40"
             >
                 <Plus size={28} strokeWidth={3} />
             </button>
@@ -228,7 +278,7 @@ export const CreditCardTab = ({ cards, addCardPurchase, removeCardPurchase, payI
                         </button>
 
                         <h3 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
-                            <span className="text-[#f97316]">/// NOVA</span> COMPRA NO CARTÃO
+                            <span className="text-[#f97316]">/// {editingId ? 'EDITAR' : 'NOVA'}</span> COMPRA NO CARTÃO
                         </h3>
 
                         <form onSubmit={handleAdd} className="space-y-4">
@@ -270,7 +320,7 @@ export const CreditCardTab = ({ cards, addCardPurchase, removeCardPurchase, payI
                                 type="submit"
                                 className="w-full py-4 rounded-lg bg-[#f97316] text-white font-bold text-sm shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:shadow-[0_0_25px_rgba(249,115,22,0.6)] transition-all uppercase tracking-wider mt-4"
                             >
-                                Adicionar Compra
+                                {editingId ? 'Salvar Alterações' : 'Adicionar Compra'}
                             </button>
                         </form>
                     </div>

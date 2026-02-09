@@ -347,6 +347,41 @@ export const useFinance = () => {
         }).eq('id', id);
     };
 
+    const unpayInstallment = async (id) => {
+        if (!user) return;
+        const card = cards.find(c => c.id === id);
+        if (!card || !card.paidThisMonth || card.paidInstallments <= 0) return;
+
+        const prevInstallment = card.paidInstallments - 1;
+        setCards(prev => prev.map(c => c.id === id ? { ...c, paidInstallments: prevInstallment, paidThisMonth: false } : c));
+
+        await supabase.from('finance_cards').update({
+            paid_installments: prevInstallment,
+            paid_this_month: false
+        }).eq('id', id);
+    };
+
+    const updateCardPurchase = async (id, updates) => {
+        if (!user) return;
+        
+        // Optimistic update
+        setCards(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+
+        const dbUpdates = {
+            title: updates.title,
+            total_value: updates.value,
+            installments: updates.installments
+        };
+
+        const { error } = await supabase.from('finance_cards').update(dbUpdates).eq('id', id);
+
+        if (error) {
+            console.error('Error updating card:', error);
+            alert(`Erro ao atualizar cartão: ${error.message}`);
+            // Rollback could be implemented here by refetching or keeping previous state
+        }
+    };
+
     const updateReserve = async (newAmount) => {
         if (!user) return;
         setReserve(prev => ({ ...prev, current: newAmount }));
@@ -372,7 +407,7 @@ export const useFinance = () => {
         income, setIncome: setIncomeWrapper, history,
         expenses, addExpense, toggleExpensePaid, removeExpense,
         shoppingList, addItemToShop, toggleShopItem, removeShopItem,
-        cards, addCardPurchase, removeCardPurchase, payInstallment,
+        cards, addCardPurchase, removeCardPurchase, payInstallment, unpayInstallment, updateCardPurchase,
         reserve, updateReserve, setReserveGoal
     };
 };
