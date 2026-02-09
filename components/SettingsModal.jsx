@@ -17,6 +17,7 @@ export const SettingsModal = ({ isOpen, onClose }) => {
     const [tempWeight, setTempWeight] = useState(userData.weight || '');
     const [tempHeight, setTempHeight] = useState(profileData.height || '');
     const [tempAge, setTempAge] = useState(profileData.age || '');
+    const [tempBirthDate, setTempBirthDate] = useState(user?.user_metadata?.birthDate || '');
     const [tempEmail, setTempEmail] = useState(user?.email || '');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -32,11 +33,26 @@ export const SettingsModal = ({ isOpen, onClose }) => {
             setTempWeight(userData.weight || '');
             setTempHeight(profileData.height || '');
             setTempAge(profileData.age || '');
+            setTempBirthDate(user?.user_metadata?.birthDate || '');
             setTempEmail(user?.email || '');
             setNewPassword('');
             setConfirmPassword('');
         }
     }, [isOpen, userName, userPhoto, userData, profileData, user]);
+
+    // Calculate age from birthdate
+    React.useEffect(() => {
+        if (tempBirthDate) {
+            const birth = new Date(tempBirthDate);
+            const today = new Date();
+            let age = today.getFullYear() - birth.getFullYear();
+            const m = today.getMonth() - birth.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+                age--;
+            }
+            setTempAge(age);
+        }
+    }, [tempBirthDate]);
 
     if (!isOpen) return null;
 
@@ -157,7 +173,8 @@ export const SettingsModal = ({ isOpen, onClose }) => {
                 avatarUrl: finalPhoto,
                 weight: tempWeight,
                 height: tempHeight,
-                age: tempAge
+                age: tempAge,
+                birthDate: tempBirthDate
             };
             const { data: updateData, error: updateError } = await supabase.auth.updateUser({ data: metadataUpdates });
             
@@ -241,7 +258,7 @@ export const SettingsModal = ({ isOpen, onClose }) => {
 
                     {/* Form */}
                     <div className="space-y-4">
-                        <div>
+                        <div className="w-full">
                             <label className="text-xs text-[var(--primary)] font-mono uppercase mb-2 block tracking-widest">Identificação (Nome)</label>
                             <div className="relative">
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={18} />
@@ -256,8 +273,9 @@ export const SettingsModal = ({ isOpen, onClose }) => {
 
                         {/* URL Photo Removed as requested */}
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
+                        {/* Flex container for Weight and Height - Side by Side (50% each) */}
+                        <div className="flex gap-4 w-full">
+                            <div className="flex-1">
                                 <label className="text-xs text-[var(--text-muted)] font-mono uppercase mb-2 block tracking-widest">Peso (kg)</label>
                                 <input
                                     type="number"
@@ -267,7 +285,7 @@ export const SettingsModal = ({ isOpen, onClose }) => {
                                     onChange={e => setTempWeight(e.target.value)}
                                 />
                             </div>
-                            <div>
+                            <div className="flex-1">
                                 <label className="text-xs text-[var(--text-muted)] font-mono uppercase mb-2 block tracking-widest">Altura (cm)</label>
                                 <input
                                     type="number"
@@ -276,17 +294,25 @@ export const SettingsModal = ({ isOpen, onClose }) => {
                                     onChange={e => setTempHeight(e.target.value)}
                                 />
                             </div>
-                            <div>
-                                <label className="text-xs text-[var(--text-muted)] font-mono uppercase mb-2 block tracking-widest">Idade</label>
-                                <input
-                                    type="number"
-                                    className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-[var(--primary)] transition-all"
-                                    value={tempAge}
-                                    onChange={e => setTempAge(e.target.value)}
-                                />
-                            </div>
                         </div>
-                        <div>
+
+                        {/* Date of Birth - Full Width */}
+                        <div className="w-full">
+                            <label className="text-xs text-[var(--text-muted)] font-mono uppercase mb-2 block tracking-widest">Data de Nascimento</label>
+                            <input
+                                type="date"
+                                className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-[var(--primary)] transition-all [color-scheme:dark]"
+                                value={tempBirthDate}
+                                onChange={e => setTempBirthDate(e.target.value)}
+                            />
+                            {tempAge && (
+                                <p className="text-[10px] text-[var(--text-muted)] mt-1 font-mono uppercase tracking-wider text-right">
+                                    Idade Calculada: <span className="text-[var(--primary)]">{tempAge} anos</span>
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="w-full">
                             <label className="text-xs text-[var(--text-muted)] font-mono uppercase mb-2 block tracking-widest">E-mail</label>
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={18} />
@@ -298,8 +324,10 @@ export const SettingsModal = ({ isOpen, onClose }) => {
                                 />
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 gap-4">
-                            <div>
+
+                        {/* Passwords - Stacked (Full Width) */}
+                        <div className="space-y-4">
+                            <div className="w-full">
                                 <label className="text-xs text-[var(--text-muted)] font-mono uppercase mb-2 block tracking-widest">Nova Senha</label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={18} />
@@ -311,7 +339,7 @@ export const SettingsModal = ({ isOpen, onClose }) => {
                                     />
                                 </div>
                             </div>
-                            <div>
+                            <div className="w-full">
                                 <label className="text-xs text-[var(--text-muted)] font-mono uppercase mb-2 block tracking-widest">Confirmar Senha</label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={18} />
