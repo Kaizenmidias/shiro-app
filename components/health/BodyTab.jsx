@@ -116,18 +116,18 @@ export const BodyTab = ({ userData, profileData, weightHistory, updateUserData, 
                     <Activity size={20} className="text-[var(--primary)]" />
                     Análise Corporal
                 </h3>
-                <div className="grid md:grid-cols-2 gap-8 items-center relative z-10">
+                <div className="grid grid-cols-2 gap-4 items-center relative z-10">
                     {userData.targetWeight && userData.weight && (
-                        <div className="p-5 bg-[var(--primary)]/5 rounded-2xl border border-[var(--primary)]/20 shadow-[0_0_20px_rgba(0,243,255,0.05)]">
-                            <p className="text-xs text-[var(--text-muted)] mb-2 uppercase font-mono tracking-wider flex justify-between">
-                                Progresso da Meta
+                        <div className="p-3 md:p-5 bg-[var(--primary)]/5 rounded-2xl border border-[var(--primary)]/20 shadow-[0_0_20px_rgba(0,243,255,0.05)]">
+                            <p className="text-[10px] md:text-xs text-[var(--text-muted)] mb-2 uppercase font-mono tracking-wider flex flex-col md:flex-row md:justify-between gap-1">
+                                Progresso
                                 <span className="text-[var(--primary)] font-bold">Meta: {userData.targetWeight}kg</span>
                             </p>
-                            <div className="flex items-end justify-between mb-3">
-                                <span className="text-3xl font-black text-white tracking-tighter">{userData.weight}<span className="text-sm ml-1 text-[var(--text-muted)]">kg</span></span>
-                                <span className="text-[10px] text-[var(--text-muted)] uppercase font-mono">Peso Atual</span>
+                            <div className="flex items-end justify-between mb-2 md:mb-3">
+                                <span className="text-2xl md:text-3xl font-black text-white tracking-tighter">{userData.weight}<span className="text-xs md:text-sm ml-1 text-[var(--text-muted)]">kg</span></span>
+                                <span className="text-[8px] md:text-[10px] text-[var(--text-muted)] uppercase font-mono">Atual</span>
                             </div>
-                            <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/5">
+                            <div className="h-1.5 md:h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/5">
                                 <div
                                     className="h-full bg-[var(--primary)] shadow-[0_0_15px_var(--primary-glow)] transition-all duration-1000"
                                     style={{ width: `${Math.min(100, Math.max(10, (1 - Math.abs(userData.weight - userData.targetWeight) / 20) * 100))}%` }}
@@ -136,12 +136,12 @@ export const BodyTab = ({ userData, profileData, weightHistory, updateUserData, 
                         </div>
                     )}
                     <div className="text-right md:pr-4 opacity-50 hover:opacity-100 transition-opacity">
-                        <p className="text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-widest font-mono text-blue-400">Consumo Basal (TMB)</p>
+                        <p className="text-[8px] md:text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-widest font-mono text-blue-400">Consumo Basal</p>
                         <div className="flex items-baseline gap-1 justify-end">
-                            <span className="text-2xl font-black text-white">{Math.round(tmb)}</span>
-                            <span className="text-[var(--primary)] text-xs font-bold">kcal/dia</span>
+                            <span className="text-xl md:text-2xl font-black text-white">{Math.round(tmb)}</span>
+                            <span className="text-[var(--primary)] text-[10px] md:text-xs font-bold">kcal/dia</span>
                         </div>
-                        <p className="text-[9px] text-[var(--text-muted)] leading-tight mt-1">Estimativa de calorias para<br />manutenção em repouso</p>
+                        <p className="hidden md:block text-[9px] text-[var(--text-muted)] leading-tight mt-1">Estimativa de calorias para<br />manutenção em repouso</p>
                     </div>
                 </div>
             </div>
@@ -157,18 +157,23 @@ export const BodyTab = ({ userData, profileData, weightHistory, updateUserData, 
                         {/* Connecting Line (Desktop) */}
                         <div className="hidden md:block absolute left-4 right-4 top-4 h-0.5 bg-white/5 z-0" />
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 relative z-10">
+                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6 relative z-10">
                             {roadmap.map((m) => {
                                 const isReached = userData.rewardedMonths?.includes(m.month);
+                                // Calculate future date: today + m.month months
+                                const futureDate = new Date();
+                                futureDate.setMonth(futureDate.getMonth() + m.month);
+                                const dateStr = futureDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+
                                 return (
-                                    <div key={m.month} className="flex md:flex-col items-center gap-4 md:text-center group">
+                                    <div key={m.month} className="flex flex-col items-center justify-center text-center gap-2 group bg-white/5 p-3 rounded-xl border border-white/5 hover:border-[var(--primary)] transition-all">
                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isReached ? 'bg-[var(--primary)] text-black shadow-[0_0_15px_var(--primary-glow)]' : 'bg-black/40 border border-white/10 text-[var(--text-muted)] group-hover:border-[var(--primary)]'}`}>
-                                            {isReached ? <Check size={16} /> : m.month}
+                                            {isReached ? <Check size={16} /> : <span className="text-xs font-bold">{m.month}º</span>}
                                         </div>
                                         <div>
-                                            <p className="text-[10px] text-[var(--text-muted)] uppercase font-mono tracking-tighter">Mês {m.month}</p>
-                                            <p className={`text-xl font-black ${isReached ? 'text-white' : 'text-white/40'}`}>
-                                                {m.target}<span className="text-[10px] ml-1 uppercase">kg</span>
+                                            <p className="text-[10px] text-[var(--text-muted)] uppercase font-mono tracking-tighter mb-1">{dateStr}</p>
+                                            <p className={`text-lg font-black ${isReached ? 'text-white' : 'text-white/60'}`}>
+                                                {m.target}<span className="text-[10px] ml-0.5 uppercase">kg</span>
                                             </p>
                                         </div>
                                     </div>
