@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Dumbbell, Calendar, CheckCircle2, Circle, Plus, Trash2, Edit2, ChevronRight, ChevronLeft, Info, RefreshCw, X, Save, ArrowUp, ArrowDown } from 'lucide-react';
+import { Dumbbell, Calendar, CheckCircle2, Circle, Plus, Trash2, Edit2, ChevronRight, ChevronLeft, Info, RefreshCw, X, Save, ArrowUp, ArrowDown, Copy } from 'lucide-react';
 
 export const WorkoutTab = ({ workoutPlan, setWorkoutPlan, generateWorkout, toggleExercise, renameWorkout, updateWorkoutExercises }) => {
     const days = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
@@ -14,6 +14,7 @@ export const WorkoutTab = ({ workoutPlan, setWorkoutPlan, generateWorkout, toggl
     const [editType, setEditType] = useState('A'); // 'A' or 'B'
     const [editExercises, setEditExercises] = useState([]);
     const [editName, setEditName] = useState('');
+    const [showDuplicateModal, setShowDuplicateModal] = useState(false);
 
     const [showFreqSelector, setShowFreqSelector] = useState(!workoutPlan || !workoutPlan.schedule);
     const [tempFreq, setTempFreq] = useState(3);
@@ -49,9 +50,66 @@ export const WorkoutTab = ({ workoutPlan, setWorkoutPlan, generateWorkout, toggl
     };
 
     const saveEdit = () => {
-        renameWorkout(editType, editName);
-        updateWorkoutExercises(editType, editExercises);
+        // Check if the current type is shared by other days
+        const daysUsingType = Object.entries(workoutPlan.schedule)
+            .filter(([day, type]) => type === editType)
+            .map(([day]) => day);
+
+        // If it's shared (length > 1), we need to fork it to decouple logic as requested
+        if (daysUsingType.length > 1) {
+            const newType = `${editType}_${selectedDay}_${Date.now()}`; 
+            
+            const newWorkout = {
+                name: editName,
+                exercises: editExercises
+            };
+
+            setWorkoutPlan(prev => ({
+                ...prev,
+                schedule: {
+                    ...prev.schedule,
+                    [selectedDay]: newType
+                },
+                workouts: {
+                    ...prev.workouts,
+                    [newType]: newWorkout
+                }
+            }));
+        } else {
+            // Unique to this day, update in place
+            renameWorkout(editType, editName);
+            updateWorkoutExercises(editType, editExercises);
+        }
+        
         setIsEditing(false);
+    };
+
+    const handleDuplicate = (targetDay) => {
+        if (!targetDay) return;
+
+        // Create a unique type for the target day to ensure independence
+        const newType = `Custom_${targetDay}_${Date.now()}`;
+
+        // Create the workout object based on current edit state
+        const newWorkout = {
+            name: editName, // Use the name from the edit form
+            exercises: [...editExercises] // Deep copy exercises
+        };
+
+        setWorkoutPlan(prev => ({
+            ...prev,
+            schedule: {
+                ...prev.schedule,
+                [targetDay]: newType
+            },
+            workouts: {
+                ...prev.workouts,
+                [newType]: newWorkout
+            }
+        }));
+
+        setShowDuplicateModal(false);
+        // Optional: show feedback or just close
     };
 
     const addExercise = () => {
@@ -137,10 +195,51 @@ export const WorkoutTab = ({ workoutPlan, setWorkoutPlan, generateWorkout, toggl
                             placeholder="NOME DO TREINO"
                         />
                     </div>
+                    <button 
+                        onClick={() => setShowDuplicateModal(true)} 
+                        className="p-2 mr-2 bg-white/10 text-white hover:bg-white/20 rounded-lg hover:scale-105 transition-all"
+                        title="Duplicar para outro dia"
+                    >
+                        <Copy size={20} />
+                    </button>
                     <button onClick={saveEdit} className="p-2 bg-[var(--primary)] text-black rounded-lg hover:scale-105 transition-transform shadow-[0_0_15px_var(--primary-glow)]/30">
                         <Save size={20} />
                     </button>
                 </div>
+
+                {showDuplicateModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+                        <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 w-full max-w-sm relative shadow-2xl">
+                            <button 
+                                onClick={() => setShowDuplicateModal(false)}
+                                className="absolute top-4 right-4 text-white/40 hover:text-white"
+                            >
+                                <X size={20} />
+                            </button>
+                            
+                            <h3 className="text-lg font-black text-white mb-1 uppercase">Duplicar Treino</h3>
+                            <p className="text-xs text-[var(--text-muted)] mb-6">Escolha o dia para copiar este treino:</p>
+                            
+                            <div className="space-y-2">
+                                {days.map(day => (
+                                    <button
+                                        key={day}
+                                        onClick={() => handleDuplicate(day)}
+                                        disabled={day === selectedDay}
+                                        className={`w-full p-4 rounded-xl text-left font-bold text-sm transition-all flex items-center justify-between group ${
+                                            day === selectedDay 
+                                                ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                                                : 'bg-white/5 hover:bg-[var(--primary)]/20 hover:text-[var(--primary)] text-white/60'
+                                        }`}
+                                    >
+                                        <span>{day}</span>
+                                        {day !== selectedDay && <Copy size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="space-y-3 pb-32">
                     {editExercises.map((ex, idx) => (
