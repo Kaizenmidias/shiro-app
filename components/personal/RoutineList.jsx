@@ -16,7 +16,7 @@ const DAYS = [
 ];
 
 export const RoutineList = () => {
-    const { getTodaysTasks, addTask, updateTask, moveTask, toggleTask, removeTask, mounted, tasks } = useRoutine();
+    const { getTodaysTasks, addTask, updateTask, moveTask, toggleTask, deleteTask, mounted, tasks } = useRoutine();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
     const [showAllTasks, setShowAllTasks] = useState(false);
@@ -219,11 +219,11 @@ export const RoutineList = () => {
                                     <Pencil size={18} />
                                 </button>
                                 <button
-                                    onClick={() => removeTask(task.id)}
-                                    className="lg:opacity-0 lg:group-hover:opacity-100 text-[var(--text-muted)] hover:text-[var(--accent)] transition-all p-2"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
+                                onClick={() => deleteTask(task.id)}
+                                className="lg:opacity-0 lg:group-hover:opacity-100 text-[var(--text-muted)] hover:text-[var(--accent)] transition-all p-2"
+                            >
+                                <Trash2 size={18} />
+                            </button>
                             </div>
                         </div>
                     ))
