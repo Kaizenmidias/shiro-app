@@ -50,12 +50,34 @@ export const SettingsModal = ({ isOpen, onClose }) => {
 
     const uploadPhotoIfNeeded = async () => {
         if (!photoFile || !user) return null;
-        const ext = photoFile.name.split('.').pop();
-        const path = `avatars/${user.id}-${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('avatars').upload(path, photoFile, { upsert: true });
-        if (upErr) return null;
-        const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-        return data?.publicUrl || null;
+        
+        // Sanitize file name and extension
+        const fileExt = photoFile.name.split('.').pop() || 'png';
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+        const filePath = `avatars/${fileName}`;
+
+        console.log('Iniciando upload para:', filePath);
+
+        const { error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, photoFile, { 
+                upsert: true,
+                cacheControl: '3600',
+                contentType: photoFile.type
+            });
+
+        if (uploadError) {
+            console.error('Erro no upload Supabase:', uploadError);
+            throw new Error(`Erro no upload: ${uploadError.message}`);
+        }
+
+        const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+        
+        if (!data || !data.publicUrl) {
+            throw new Error('Não foi possível obter a URL pública da imagem.');
+        }
+
+        return data.publicUrl;
     };
 
     const handleSave = async () => {
@@ -67,11 +89,13 @@ export const SettingsModal = ({ isOpen, onClose }) => {
 
             if (photoFile) {
                 // User uploaded a new file
-                const uploadedUrl = await uploadPhotoIfNeeded();
-                if (!uploadedUrl) {
-                    throw new Error('Falha ao fazer upload da imagem. Tente novamente.');
+                try {
+                    const uploadedUrl = await uploadPhotoIfNeeded();
+                    finalPhoto = uploadedUrl;
+                } catch (uploadErr) {
+                    console.error('Falha detalhada no upload:', uploadErr);
+                    throw new Error(`Falha ao enviar imagem: ${uploadErr.message}`);
                 }
-                finalPhoto = uploadedUrl;
             } else if (tempPhoto !== userPhoto) {
                 // User changed photo (e.g. generated avatar) but didn't upload file
                 finalPhoto = tempPhoto;
