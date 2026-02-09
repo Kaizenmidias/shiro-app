@@ -83,7 +83,8 @@ export const useFinance = () => {
                         value: parseFloat(c.total_value), // Map total_value to value (as used in UI)
                         installments: c.installments,
                         paidInstallments: c.paid_installments,
-                        paidThisMonth: c.paid_this_month
+                        paidThisMonth: c.paid_this_month,
+                        createdAt: c.created_at
                     })));
                 }
 

@@ -39,17 +39,45 @@ export const FinanceDashboard = ({
 
     const shoppingTotal = shoppingList.reduce((sum, item) => sum + (parseFloat(item.value) || 0), 0);
 
-    // Monthly bill: sum of installments for all active cards
-    const monthlyCardBill = cards.reduce((sum, card) => {
-        if (card.paidInstallments >= card.installments) return sum;
-        return sum + (card.value / card.installments);
-    }, 0);
+    // Monthly bill: sum of installments for all active cards in the current month
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
 
-    // Remaining bill to pay this month: installments where paidThisMonth is false
-    const pendingCardBill = cards.reduce((sum, card) => {
-        if (card.paidInstallments >= card.installments || card.paidThisMonth) return sum;
-        return sum + (card.value / card.installments);
-    }, 0);
+    const activeCardsThisMonth = cards.map(card => {
+        let startDate = card.createdAt ? new Date(card.createdAt) : new Date();
+        // If no createdAt, try to infer from paid installments to keep consistency
+        if (!card.createdAt && card.paidInstallments > 0) {
+            startDate = new Date();
+            startDate.setDate(1); // Avoid month rollover issues
+            startDate.setMonth(startDate.getMonth() - card.paidInstallments);
+        }
+        
+        const startMonth = startDate.getMonth();
+        const startYear = startDate.getFullYear();
+        
+        // Calculate installment number based on date difference
+        const monthDiff = (currentYear - startYear) * 12 + (currentMonth - startMonth);
+        const installmentNumber = monthDiff + 1;
+        
+        // Check if card is active in current month
+        const isActive = installmentNumber > 0 && installmentNumber <= card.installments;
+        
+        return {
+            ...card,
+            isActive,
+            installmentValue: card.value / card.installments
+        };
+    });
+
+    const monthlyCardBill = activeCardsThisMonth
+        .filter(c => c.isActive)
+        .reduce((sum, c) => sum + c.installmentValue, 0);
+
+    // Remaining bill to pay this month
+    const pendingCardBill = activeCardsThisMonth
+        .filter(c => c.isActive && !c.paidThisMonth)
+        .reduce((sum, c) => sum + c.installmentValue, 0);
 
     const totalOutflow = totalExpenses + shoppingTotal + monthlyCardBill;
     const balance = income - totalOutflow;
@@ -193,7 +221,7 @@ export const FinanceDashboard = ({
                         {/* Credit Cards Bar */}
                         <div className="group">
                             <div className="flex justify-between text-[10px] uppercase font-black mb-2 px-1">
-                                <span className="text-[var(--text-muted)] group-hover:text-white transition-colors">Parcelas de Cartão</span>
+                                <span className="text-[var(--text-muted)] group-hover:text-white transition-colors">Cartão</span>
                                 <span className="text-white">{formatCurrency(monthlyCardBill)}</span>
                             </div>
                             <div className="w-full h-3 bg-black/40 rounded-full border border-white/5 overflow-hidden">
@@ -229,7 +257,7 @@ export const FinanceDashboard = ({
                             <div className="bg-black/20 p-5 rounded-3xl border border-white/5 hover:border-orange-500/30 transition-all group">
                                 <div className="flex items-center gap-3 mb-3">
                                     <CreditCard size={18} className="text-orange-500" />
-                                    <span className="text-[10px] font-black text-[var(--text-muted)] uppercase text-left">Parcelas Cartão</span>
+                                    <span className="text-[10px] font-black text-[var(--text-muted)] uppercase text-left">Cartão</span>
                                 </div>
                                 <div className="text-xl font-bold text-white tracking-tight">{formatCurrency(pendingCardBill)} pendente</div>
                             </div>
