@@ -15,14 +15,20 @@ export const SettingsModal = ({ isOpen, onClose }) => {
     const [tempPhoto, setTempPhoto] = useState(userPhoto);
     const [photoFile, setPhotoFile] = useState(null);
     const [tempWeight, setTempWeight] = useState(userData.weight || '');
-    const [tempHeight, setTempHeight] = useState(profileData.height || '');
-    const [tempAge, setTempAge] = useState(profileData.age || '');
-    const [tempEmail, setTempEmail] = useState(user?.email || '');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [isSaving, setIsSaving] = useState(false);
-    const [errorMsg, setErrorMsg] = useState('');
-    const [successMsg, setSuccessMsg] = useState('');
+
+    // Reset fields when modal opens to ensure data is fresh
+    React.useEffect(() => {
+        if (isOpen) {
+            setTempName(userName);
+            setTempPhoto(userPhoto);
+            setTempWeight(userData.weight || '');
+            setTempHeight(profileData.height || '');
+            setTempAge(profileData.age || '');
+            setTempEmail(user?.email || '');
+            setNewPassword('');
+            setConfirmPassword('');
+        }
+    }, [isOpen, userName, userPhoto, userData, profileData, user]);
 
     if (!isOpen) return null;
 
@@ -130,7 +136,7 @@ export const SettingsModal = ({ isOpen, onClose }) => {
                             </button>
                         </div>
                         <div className="w-full">
-                            <label className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest block mb-2">Upload de Foto</label>
+                            <label className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest block mb-2">Adicionar foto de perfil</label>
                             <input type="file" accept="image/*" onChange={handleFileSelect} className="w-full text-xs" />
                         </div>
                         <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-mono">Avatar Autogerado</p>
@@ -151,19 +157,8 @@ export const SettingsModal = ({ isOpen, onClose }) => {
                             </div>
                         </div>
 
-                        <div>
-                            <label className="text-xs text-[var(--text-muted)] font-mono uppercase mb-2 block tracking-widest">URL da Foto (Opcional)</label>
-                            <div className="relative">
-                                <Camera className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={18} />
-                                <input
-                                    type="text"
-                                    className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-[var(--primary)] transition-all"
-                                    placeholder="https://sua-foto.com/image.jpg"
-                                    value={tempPhoto}
-                                    onChange={e => setTempPhoto(e.target.value)}
-                                />
-                            </div>
-                        </div>
+                        {/* URL Photo Removed as requested */}
+
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="text-xs text-[var(--text-muted)] font-mono uppercase mb-2 block tracking-widest">Peso (kg)</label>
@@ -206,7 +201,7 @@ export const SettingsModal = ({ isOpen, onClose }) => {
                                 />
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                             <div>
                                 <label className="text-xs text-[var(--text-muted)] font-mono uppercase mb-2 block tracking-widest">Nova Senha</label>
                                 <div className="relative">
