@@ -19,9 +19,11 @@ export const RoutineProvider = ({ children }) => {
 
     // Load tasks from Supabase when user loads
     useEffect(() => {
+        let isMounted = true;
+        
         const loadRoutine = async () => {
             if (!user) {
-                setMounted(true);
+                if (isMounted) setMounted(true);
                 return;
             }
             
@@ -35,7 +37,7 @@ export const RoutineProvider = ({ children }) => {
 
                 if (error) throw error;
 
-                if (data) {
+                if (data && isMounted) {
                     // Normalize data (snake_case to camelCase for internal use)
                     const normalizedTasks = data.map(task => ({
                         ...task,
@@ -53,7 +55,7 @@ export const RoutineProvider = ({ children }) => {
                         .select('*')
                         .eq('user_id', user.id);
                     
-                    if (data) {
+                    if (data && isMounted) {
                          const normalizedTasks = data.map((task, index) => ({
                             ...task,
                             customDays: task.custom_days || [],
@@ -67,11 +69,21 @@ export const RoutineProvider = ({ children }) => {
                     console.error('Critical unexpected error loading routine:', retryErr);
                 }
             } finally {
-                setMounted(true);
+                if (isMounted) setMounted(true);
             }
         };
 
         loadRoutine();
+
+        // Safety timeout to ensure app doesn't get stuck in loading state
+        const safetyTimer = setTimeout(() => {
+            if (isMounted) setMounted(true);
+        }, 3000);
+
+        return () => {
+            isMounted = false;
+            clearTimeout(safetyTimer);
+        };
     }, [user]);
 
     const getTodaysTasks = () => {

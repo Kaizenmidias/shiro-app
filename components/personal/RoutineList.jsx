@@ -16,9 +16,10 @@ const DAYS = [
 ];
 
 export const RoutineList = () => {
-    const { getTodaysTasks, addTask, updateTask, moveTask, toggleTask, removeTask, mounted } = useRoutine();
+    const { getTodaysTasks, addTask, updateTask, moveTask, toggleTask, removeTask, mounted, tasks } = useRoutine();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
+    const [showAllTasks, setShowAllTasks] = useState(false);
     const [taskData, setTaskData] = useState({
         title: '',
         time: '',
@@ -27,14 +28,22 @@ export const RoutineList = () => {
     });
 
     if (!mounted) {
-        console.log('RoutineList: Waiting for mount');
-        return null;
+        return (
+            <div className="flex flex-col items-center justify-center py-20 animate-pulse">
+                <Clock size={40} className="text-[var(--primary)] mb-4" />
+                <p className="text-[var(--text-muted)]">Carregando rotina...</p>
+            </div>
+        );
     }
 
     // Use tasks directly from hook to maintain manual order, but filter for today
     const todaysTasks = getTodaysTasks ? getTodaysTasks() : [];
+    const allTasks = tasks || [];
     
-    console.log('RoutineList Render:', { todaysTasks, mounted });
+    // Determine which list to show
+    const displayTasks = showAllTasks ? allTasks : todaysTasks;
+
+    console.log('RoutineList Render:', { todaysTasksCount: todaysTasks.length, allTasksCount: allTasks.length, mounted });
 
     const handleOpenModal = (task = null) => {
         if (task) {
@@ -105,38 +114,70 @@ export const RoutineList = () => {
                 <div>
                     <h2 className="text-2xl font-bold text-white flex items-center gap-2">
                         <CheckSquare className="text-[var(--primary)]" />
-                        Minha Rotina
+                        {showAllTasks ? 'Todas as Rotinas' : 'Minha Rotina'}
                     </h2>
-                    <p className="text-[var(--text-muted)] text-sm">{todaysTasks.filter(t => !t.completed).length} tarefas restantes para hoje</p>
+                    <p className="text-[var(--text-muted)] text-sm">
+                        {showAllTasks 
+                            ? `${allTasks.length} rotinas cadastradas`
+                            : `${todaysTasks.filter(t => !t.completed).length} tarefas restantes para hoje`
+                        }
+                    </p>
                 </div>
-                <div className="text-right text-xs font-mono text-[var(--primary)]">
-                    {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric' })}
+                <div className="flex flex-col items-end gap-1">
+                    <div className="text-right text-xs font-mono text-[var(--primary)]">
+                        {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric' })}
+                    </div>
+                    {allTasks.length > 0 && (
+                        <button 
+                            onClick={() => setShowAllTasks(!showAllTasks)}
+                            className="text-xs text-[var(--text-muted)] hover:text-white underline decoration-dotted"
+                        >
+                            {showAllTasks ? 'Ver tarefas de hoje' : 'Ver todas as tarefas'}
+                        </button>
+                    )}
                 </div>
             </div>
 
             <div className="space-y-3">
-                {todaysTasks.length === 0 ? (
+                {displayTasks.length === 0 ? (
                     <div className="text-center py-20 border-2 border-dashed border-[var(--glass-border)] rounded-2xl opacity-50">
                         <Clock size={40} className="mx-auto mb-4 text-[var(--text-muted)]" />
-                        <p className="text-[var(--text-muted)]">Nada programado para hoje</p>
+                        <p className="text-[var(--text-muted)]">
+                            {showAllTasks 
+                                ? 'Nenhuma rotina cadastrada' 
+                                : allTasks.length > 0 
+                                    ? `Nada para hoje (${allTasks.length} em outros dias)` 
+                                    : 'Nada programado para hoje'
+                            }
+                        </p>
+                        {!showAllTasks && allTasks.length > 0 && (
+                             <button 
+                                onClick={() => setShowAllTasks(true)}
+                                className="mt-2 text-sm text-[var(--primary)] hover:underline"
+                            >
+                                Ver todas
+                            </button>
+                        )}
                     </div>
                 ) : (
-                    todaysTasks.map((task, index) => (
+                    displayTasks.map((task, index) => (
                         <div key={task.id} className={`glass-panel p-4 flex items-center gap-3 group transition-all ${task.completed ? 'opacity-50' : 'hover:border-[var(--primary)]/50'}`}>
 
-                            {/* Reorder Controls */}
-                            <div className="flex flex-col gap-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                            {/* Reorder Controls - Only enable reordering when showing all tasks or if logic supports it */}
+                             <div className="flex flex-col gap-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                                 <button
                                     onClick={() => moveTask(task.id, 'up')}
-                                    disabled={index === 0}
-                                    className="text-[var(--text-muted)] hover:text-[var(--primary)] disabled:opacity-20"
+                                    disabled={index === 0 || !showAllTasks} 
+                                    className={`text-[var(--text-muted)] hover:text-[var(--primary)] disabled:opacity-20 ${!showAllTasks ? 'invisible' : ''}`}
+                                    title={!showAllTasks ? "Ordenar apenas em 'Ver todas'" : "Subir"}
                                 >
                                     <ChevronUp size={16} />
                                 </button>
                                 <button
                                     onClick={() => moveTask(task.id, 'down')}
-                                    disabled={index === todaysTasks.length - 1}
-                                    className="text-[var(--text-muted)] hover:text-[var(--primary)] disabled:opacity-20"
+                                    disabled={index === displayTasks.length - 1 || !showAllTasks}
+                                    className={`text-[var(--text-muted)] hover:text-[var(--primary)] disabled:opacity-20 ${!showAllTasks ? 'invisible' : ''}`}
+                                    title={!showAllTasks ? "Ordenar apenas em 'Ver todas'" : "Descer"}
                                 >
                                     <ChevronDown size={16} />
                                 </button>
@@ -153,7 +194,15 @@ export const RoutineList = () => {
                             </button>
 
                             <div className="flex-1 min-w-0">
-                                <h3 className={`font-medium ${task.completed ? 'line-through text-[var(--text-muted)]' : 'text-white'}`}>{task.title}</h3>
+                                <h3 className={`font-medium ${task.completed ? 'line-through text-[var(--text-muted)]' : 'text-white'}`}>
+                                    {task.title}
+                                    {showAllTasks && (
+                                        <span className="ml-2 text-[10px] uppercase border border-[var(--glass-border)] px-1 rounded text-[var(--text-muted)]">
+                                            {task.frequency === 'everyday' ? 'Diário' : 
+                                             task.frequency === 'workdays' ? 'Dias úteis' : 'Custom'}
+                                        </span>
+                                    )}
+                                </h3>
                                 {task.time && (
                                     <div className="flex items-center gap-1 text-xs text-[var(--primary)] font-mono mt-1">
                                         <Bell size={10} />
