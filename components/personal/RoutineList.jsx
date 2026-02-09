@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRoutine } from '../../hooks/useRoutine';
 import { Plus, Check, Trash2, Clock, Calendar, Bell, Pencil, ChevronUp, ChevronDown, CheckSquare } from 'lucide-react';
+import { TimeInput } from '../ui/TimeInput';
 
 const DAYS = [
     { id: 0, label: 'D' },
@@ -177,11 +178,10 @@ export const RoutineList = () => {
                             <div className="flex gap-4">
                                 <div className="flex-1">
                                     <label className="text-xs text-[var(--text-muted)] mb-1 block uppercase font-mono">Horário (Opcional)</label>
-                                    <input
-                                        type="time"
-                                        className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-lg p-3 text-white focus:outline-none focus:border-[var(--primary)] [color-scheme:dark]"
+                                    <TimeInput
+                                        className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-lg p-3 text-white focus:outline-none focus:border-[var(--primary)]"
                                         value={taskData.time}
-                                        onChange={e => setTaskData({ ...taskData, time: e.target.value })}
+                                        onChange={val => setTaskData({ ...taskData, time: val })}
                                     />
                                 </div>
                             </div>

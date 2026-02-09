@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Utensils, RefreshCw, Plus, Edit2, Trash2, Check, X, Flame, Search, ChevronRight, Clock } from 'lucide-react';
+import { TimeInput } from '../ui/TimeInput';
 import nutritionData from '../../data/nutritionData.json';
 
 export const DietTab = ({ dietPlan, setDietPlan, generateDiet, userData }) => {
@@ -233,11 +234,10 @@ export const DietTab = ({ dietPlan, setDietPlan, generateDiet, userData }) => {
                                                     />
                                                     <div className="flex items-center gap-2 bg-black/20 p-1.5 rounded-lg border border-white/5">
                                                         <Clock size={14} className="text-[var(--primary)] ml-1" />
-                                                        <input
-                                                            type="time"
-                                                            className="bg-transparent text-sm text-white focus:outline-none font-bold [color-scheme:dark]"
+                                                        <TimeInput
+                                                            className="bg-transparent text-sm text-white focus:outline-none font-bold w-12 text-center"
                                                             value={editForm.time}
-                                                            onChange={e => setEditForm({ ...editForm, time: e.target.value })}
+                                                            onChange={val => setEditForm({ ...editForm, time: val })}
                                                         />
                                                         <span className="text-[10px] text-[var(--text-muted)] uppercase font-bold">Horário do Alarme</span>
                                                     </div>
