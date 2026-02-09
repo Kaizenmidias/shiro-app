@@ -37,7 +37,7 @@ export const RankHeader = () => {
                     </div>
 
                     <div className="min-w-0">
-                        <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white truncate">
+                        <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white leading-tight">
                             Olá, <span className="text-[var(--primary)]">{userName}</span>
                         </h2>
                         <div className="flex items-center gap-3 mt-1">
