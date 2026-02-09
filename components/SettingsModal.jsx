@@ -15,6 +15,14 @@ export const SettingsModal = ({ isOpen, onClose }) => {
     const [tempPhoto, setTempPhoto] = useState(userPhoto);
     const [photoFile, setPhotoFile] = useState(null);
     const [tempWeight, setTempWeight] = useState(userData.weight || '');
+    const [tempHeight, setTempHeight] = useState(profileData.height || '');
+    const [tempAge, setTempAge] = useState(profileData.age || '');
+    const [tempEmail, setTempEmail] = useState(user?.email || '');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
+    const [successMsg, setSuccessMsg] = useState('');
 
     // Reset fields when modal opens to ensure data is fresh
     React.useEffect(() => {
