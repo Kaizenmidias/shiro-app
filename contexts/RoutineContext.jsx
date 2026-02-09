@@ -324,7 +324,7 @@ export const RoutineProvider = ({ children }) => {
     }, [mounted, tasks, addPoints, removePoints, user]);
 
     return (
-        <RoutineContext.Provider value={{ tasks, addTask, toggleTask, deleteTask, updateTask, moveTask, getTodaysTasks }}>
+        <RoutineContext.Provider value={{ tasks, addTask, toggleTask, deleteTask, updateTask, moveTask, getTodaysTasks, mounted }}>
             {children}
         </RoutineContext.Provider>
     );

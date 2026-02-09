@@ -61,7 +61,7 @@ export const ExpensesTab = ({ expenses, addExpense, toggleExpensePaid, removeExp
                             </button>
                             <div>
                                 <h3 className={`font-medium text-lg flex items-center gap-2 ${exp.paid ? 'line-through text-[var(--text-muted)]' : 'text-white'}`}>
-                                    {exp.name}
+                                    {exp.title || exp.name}
                                 </h3>
                                 <p className="text-sm font-mono text-[var(--text-muted)] flex items-center gap-1">
                                     {formatCurrency(exp.value)}
