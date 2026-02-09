@@ -10,7 +10,7 @@ import { CheckCircle, Activity, DollarSign, ArrowRight, Circle, CheckCircle2 } f
 export default function DashboardPage() {
     const { goals } = useGoals();
     const { userData } = useHealth();
-    const { reserve: financeReserve, expenses, income } = useFinance();
+    const { reserve: financeReserve, expenses, income, shoppingList } = useFinance();
     const { getTodaysTasks } = useRoutine();
 
     const todaysTasks = getTodaysTasks();
@@ -18,8 +18,11 @@ export default function DashboardPage() {
     const totalTasks = todaysTasks.length;
     const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
-    const paidExpenses = expenses.filter(e => e.paid).reduce((sum, e) => sum + parseFloat(e.value || 0), 0);
-    const availableBalance = (income || 0) - paidExpenses - (financeReserve?.current || 0);
+    // Calculate Estimated Net Balance (Saldo Líquido Estimado)
+    // Income - (Total Fixed Expenses + Total Shopping + Reserve)
+    const totalFixedExpenses = expenses.reduce((sum, e) => sum + parseFloat(e.value || 0), 0);
+    const totalShopping = shoppingList.reduce((sum, item) => sum + parseFloat(item.value || 0), 0);
+    const estimatedBalance = (income || 0) - totalFixedExpenses - totalShopping - (financeReserve?.current || 0);
 
     const radius = 36;
     const circumference = 2 * Math.PI * radius;
@@ -134,12 +137,12 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="relative z-10 mt-auto pt-2">
-                        <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mb-2">Aluguel</p>
+                        <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mb-2">Saldo Liquido</p>
                         <p className="text-2xl font-bold text-white mb-1">
-                            R$ {availableBalance.toFixed(2)}
+                            R$ {estimatedBalance.toFixed(2)}
                         </p>
-                        <span className={`text-xs font-mono px-2 py-1 rounded border ${availableBalance >= 0 ? 'text-[#00ffaa] bg-[#00ffaa]/10 border-[#00ffaa]/20' : 'text-rose-400 bg-rose-400/10 border-rose-400/20'}`}>
-                            {availableBalance >= 0 ? 'Positivo' : 'Negativo'}
+                        <span className={`text-xs font-mono px-2 py-1 rounded border ${estimatedBalance >= 0 ? 'text-[#00ffaa] bg-[#00ffaa]/10 border-[#00ffaa]/20' : 'text-rose-400 bg-rose-400/10 border-rose-400/20'}`}>
+                            {estimatedBalance >= 0 ? 'Positivo' : 'Negativo'}
                         </span>
                         <p className="text-[10px] text-[var(--text-muted)] mt-3 pt-3 border-t border-white/5 uppercase tracking-wide flex justify-between">
                             <span>Reserva</span>
