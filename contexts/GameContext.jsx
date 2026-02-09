@@ -29,141 +29,100 @@ export const GameProvider = ({ children }) => {
     const [userSex, setUserSex] = useState('male');
     const [mounted, setMounted] = useState(false);
 
+    // Load Data from Supabase
     useEffect(() => {
-        if (user?.user_metadata) {
-            const { name, age, height, sex, avatarUrl, gameStats: remoteStats, history: remoteHistory } = user.user_metadata;
-            
-            // Sync Game Stats from Cloud
-            if (remoteStats) {
-                setGameStats(current => {
-                     // Avoid reset if local has more progress (optional conflict resolution?)
-                     // For now, cloud is truth source for multi-device
-                     if (JSON.stringify(current) !== JSON.stringify(remoteStats)) {
-                         console.log('GameContext: Syncing stats from Supabase', remoteStats);
-                         return remoteStats;
-                     }
-                     return current;
-                });
+        if (!user) return;
+
+        const loadData = async () => {
+            try {
+                // 1. Load Game Profile
+                let { data: gameProfile } = await supabase.from('user_game_profiles').select('*').eq('user_id', user.id).single();
+                
+                if (!gameProfile) {
+                    const { data: newProfile } = await supabase.from('user_game_profiles').insert({
+                        user_id: user.id,
+                        level: 1,
+                        current_xp: 0,
+                        username: user.user_metadata?.name || '',
+                        avatar_url: user.user_metadata?.avatarUrl || ''
+                    }).select().single();
+                    gameProfile = newProfile;
+                }
+
+                if (gameProfile) {
+                    setGameStats({
+                        points: gameProfile.current_xp || 0,
+                        rankIndex: (gameProfile.level || 1) - 1
+                    });
+                    if (gameProfile.history) setHistory(gameProfile.history);
+                    if (gameProfile.username) setUserName(gameProfile.username);
+                    if (gameProfile.avatar_url) setUserPhoto(gameProfile.avatar_url);
+                }
+
+                // 2. Load Health Profile (for bio stats)
+                const { data: healthProfile } = await supabase.from('health_profiles').select('age, height, sex').eq('user_id', user.id).single();
+                
+                if (healthProfile) {
+                    if (healthProfile.age) setUserAge(healthProfile.age.toString());
+                    if (healthProfile.height) setUserHeight(healthProfile.height.toString());
+                    if (healthProfile.sex) setUserSex(healthProfile.sex);
+                }
+
+            } catch (error) {
+                console.error("Error loading game data:", error);
+            } finally {
+                setMounted(true);
             }
+        };
 
-            // Sync History from Cloud
-            if (remoteHistory) {
-                setHistory(current => {
-                    if (JSON.stringify(current) !== JSON.stringify(remoteHistory)) {
-                         console.log('GameContext: Syncing history from Supabase');
-                         return remoteHistory;
-                    }
-                    return current;
-                });
-            }
-
-            if (name) {
-                setUserName(name);
-                setUserPhoto(current => {
-                    console.log('GameContext: Resolving avatar...', { metadataUrl: avatarUrl, currentUrl: current });
-                    
-                    // 1. Prioritize Valid Supabase URL from Metadata
-                    if (avatarUrl && !avatarUrl.startsWith('blob:') && avatarUrl.includes('supabase')) {
-                         console.log('GameContext: Using metadata avatar (Supabase)');
-                         return avatarUrl;
-                    }
-
-                    // 2. Fallback to Valid Local State (if metadata is missing/old but we have a good local one)
-                    // If current is a Supabase URL and metadata is missing or DiceBear, stick with current
-                    if (current && current.includes('supabase') && !current.startsWith('blob:')) {
-                         console.log('GameContext: Keeping current local avatar (Supabase) over metadata');
-                         return current;
-                    }
-
-                    // 3. Use other valid metadata URL (external, etc)
-                    if (avatarUrl && !avatarUrl.startsWith('blob:')) {
-                        return avatarUrl;
-                    }
-
-                    // 4. Default DiceBear
-                    if (current && !current.includes('dicebear') && !current.startsWith('blob:')) return current;
-                    
-                    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
-                });
-            }
-            if (age) setUserAge(age);
-            if (height) setUserHeight(height);
-            if (sex) setUserSex(sex);
-        }
+        loadData();
     }, [user]);
-
-    useEffect(() => {
-        setMounted(true);
-        const savedStats = localStorage.getItem('gamification_stats');
-        const savedHistory = localStorage.getItem('gamification_history');
-        const savedName = localStorage.getItem('gamification_user_name');
-        const savedPhoto = localStorage.getItem('gamification_user_photo');
-        const savedAge = localStorage.getItem('gamification_user_age');
-        const savedHeight = localStorage.getItem('gamification_user_height');
-        const savedSex = localStorage.getItem('gamification_user_sex');
-
-        if (savedStats) setGameStats(JSON.parse(savedStats));
-        if (savedHistory) setHistory(JSON.parse(savedHistory));
-        if (savedName) setUserName(savedName);
-        if (savedPhoto) {
-            if (savedPhoto.startsWith('blob:')) {
-                // If it's a blob URL, it's likely invalid/expired. Don't use it.
-                // We should rely on what's in Supabase or the default.
-                localStorage.removeItem('gamification_user_photo');
-            } else {
-                setUserPhoto(savedPhoto);
-            }
-        }
-        if (savedAge) setUserAge(savedAge);
-        if (savedHeight) setUserHeight(savedHeight);
-        if (savedSex) setUserSex(savedSex);
-    }, []);
-
-    useEffect(() => {
-        if (mounted) {
-            localStorage.setItem('gamification_stats', JSON.stringify(gameStats));
-        }
-    }, [gameStats, mounted]);
-
-    useEffect(() => {
-        if (mounted) {
-            localStorage.setItem('gamification_history', JSON.stringify(history));
-            localStorage.setItem('gamification_user_name', userName);
-            localStorage.setItem('gamification_user_photo', userPhoto);
-            localStorage.setItem('gamification_user_age', userAge);
-            localStorage.setItem('gamification_user_height', userHeight);
-            localStorage.setItem('gamification_user_sex', userSex);
-        }
-    }, [history, userName, userPhoto, userAge, userHeight, userSex, mounted]);
 
     // Sync Game Stats & History to Supabase
     useEffect(() => {
         if (mounted && user) {
-            const timer = setTimeout(() => {
-                // Check if data is different from metadata before sending request to avoid loops/waste
-                const meta = user.user_metadata || {};
-                const statsChanged = JSON.stringify(gameStats) !== JSON.stringify(meta.gameStats);
-                // For history, just check length or first item for optimization
-                const historyChanged = JSON.stringify(history) !== JSON.stringify(meta.history);
-
-                if (statsChanged || historyChanged) {
-                    supabase.auth.updateUser({
-                        data: {
-                            gameStats,
-                            history: history.slice(0, 50) // Limit to last 50 items to prevent metadata overflow
-                        }
-                    }).catch(err => console.error('Failed to sync game stats:', err));
-                }
+            const timer = setTimeout(async () => {
+                await supabase.from('user_game_profiles').upsert({
+                    user_id: user.id,
+                    level: gameStats.rankIndex + 1,
+                    current_xp: gameStats.points,
+                    history: history,
+                    updated_at: new Date()
+                });
             }, 2000); // 2s debounce
             return () => clearTimeout(timer);
         }
     }, [gameStats, history, user, mounted]);
 
+    // Sync Profile Info to Supabase
+    useEffect(() => {
+        if (mounted && user) {
+            const timer = setTimeout(async () => {
+                // Update Game Profile
+                await supabase.from('user_game_profiles').upsert({
+                    user_id: user.id,
+                    username: userName,
+                    avatar_url: userPhoto,
+                    updated_at: new Date()
+                });
+
+                // Update Health Profile
+                await supabase.from('health_profiles').upsert({
+                    user_id: user.id,
+                    age: parseInt(userAge) || null,
+                    height: parseFloat(userHeight) || null,
+                    sex: userSex,
+                    updated_at: new Date()
+                });
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [userName, userPhoto, userAge, userHeight, userSex, user, mounted]);
+
     const { points, rankIndex } = gameStats;
     const currentRank = RANKS[rankIndex] || RANKS[0];
     const nextRank = rankIndex < RANKS.length - 1 ? RANKS[rankIndex + 1] : null;
 
-    // Each rank is always 100 points
     const pointsToNext = 100 - points;
     const progressToNext = points;
 

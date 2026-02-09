@@ -33,200 +33,153 @@ export const useHealth = () => {
     const [dietPlan, setDietPlan] = useState(null);
     const [workoutPlan, setWorkoutPlan] = useState(null);
 
+    // Initial Load
     useEffect(() => {
-        const savedUser = localStorage.getItem('gamification_health_user');
-        const savedDiet = localStorage.getItem('gamification_health_diet');
-        const savedWorkout = localStorage.getItem('gamification_health_workout');
-        const savedHistory = localStorage.getItem('gamification_health_history');
-        const savedNutrition = localStorage.getItem('gamification_health_nutrition');
-        const savedExercises = localStorage.getItem('shiro_health_exercises');
+        const loadData = async () => {
+            // Load static/custom data from localStorage (kept local for now as it's config)
+            const savedNutrition = localStorage.getItem('gamification_health_nutrition');
+            const savedExercises = localStorage.getItem('shiro_health_exercises');
 
-        if (savedNutrition) {
-            setAllNutritionData(JSON.parse(savedNutrition));
-        } else {
-            setAllNutritionData(nutritionDataRaw);
-            localStorage.setItem('gamification_health_nutrition', JSON.stringify(nutritionDataRaw));
-        }
-
-        if (savedExercises) {
-            setAllExercises(JSON.parse(savedExercises));
-        }
-
-        if (savedUser) {
-            const parsed = JSON.parse(savedUser);
-            setUserData(prev => ({
-                ...prev,
-                ...parsed,
-                rewardedMonths: parsed.rewardedMonths || []
-            }));
-        }
-
-        if (savedDiet) {
-            let plan = JSON.parse(savedDiet);
-
-            // MIGRATION: Auto-repair items with missing macros
-            if (plan && plan.meals) {
-                let needsUpdate = false;
-                const updatedMeals = plan.meals.map(meal => {
-                    const updatedItems = meal.items.map(item => {
-                        // If it's a known food and missing macros
-                        if (item.id && !item.id.startsWith('custom_') && (item.protein === undefined || item.protein === 0)) {
-                            const food = allNutritionData.find(f => f.id === item.id);
-                            if (food && food.protein !== undefined) {
-                                needsUpdate = true;
-                                const ratio = (food.unit === 'g' || food.unit.includes('100ml')) ? item.amount / 100 : item.amount;
-                                return {
-                                    ...item,
-                                    protein: parseFloat((food.protein * ratio).toFixed(1)),
-                                    carbs: parseFloat((food.carbs * ratio).toFixed(1)),
-                                    fats: parseFloat((food.fats * ratio).toFixed(1))
-                                };
-                            }
-                        }
-                        return item;
-                    });
-
-                    if (needsUpdate) {
-                        return {
-                            ...meal,
-                            items: updatedItems,
-                            calories: updatedItems.reduce((sum, i) => sum + (i.calSum || 0), 0),
-                            protein: parseFloat(updatedItems.reduce((sum, i) => sum + (i.protein || 0), 0).toFixed(1)),
-                            carbs: parseFloat(updatedItems.reduce((sum, i) => sum + (i.carbs || 0), 0).toFixed(1)),
-                            fats: parseFloat(updatedItems.reduce((sum, i) => sum + (i.fats || 0), 0).toFixed(1))
-                        };
-                    }
-                    return meal;
-                });
-
-                if (needsUpdate) {
-                    plan = { ...plan, meals: updatedMeals };
-                    setDietPlan(plan);
-                    localStorage.setItem('gamification_health_diet', JSON.stringify(plan));
-                } else {
-                    setDietPlan(plan);
-                }
+            if (savedNutrition) {
+                setAllNutritionData(JSON.parse(savedNutrition));
             } else {
-                setDietPlan(plan);
+                setAllNutritionData(nutritionDataRaw);
+                localStorage.setItem('gamification_health_nutrition', JSON.stringify(nutritionDataRaw));
             }
-        }
 
-        if (savedWorkout) {
-            let wp = JSON.parse(savedWorkout);
-            if (wp && wp.schedule) {
-                let needsUpdate = false;
-                Object.keys(wp.schedule).forEach(day => {
-                    if (wp.schedule[day] === 'Rest') {
-                        wp.schedule[day] = 'Descanso';
-                        needsUpdate = true;
-                    }
-                });
-                if (needsUpdate) {
-                    setWorkoutPlan(wp);
-                    localStorage.setItem('gamification_health_workout', JSON.stringify(wp));
-                } else {
-                    setWorkoutPlan(wp);
+            if (savedExercises) {
+                setAllExercises(JSON.parse(savedExercises));
+            }
+
+            if (!user) {
+                // Fallback to localStorage if no user
+                const savedUser = localStorage.getItem('gamification_health_user');
+                const savedDiet = localStorage.getItem('gamification_health_diet');
+                const savedWorkout = localStorage.getItem('gamification_health_workout');
+                const savedHistory = localStorage.getItem('gamification_health_history');
+
+                if (savedUser) {
+                    const parsed = JSON.parse(savedUser);
+                    setUserData(prev => ({ ...prev, ...parsed, rewardedMonths: parsed.rewardedMonths || [] }));
                 }
-            } else {
-                setWorkoutPlan(wp);
+                if (savedDiet) setDietPlan(JSON.parse(savedDiet));
+                if (savedWorkout) setWorkoutPlan(JSON.parse(savedWorkout));
+                if (savedHistory) setWeightHistory(JSON.parse(savedHistory));
+                setMounted(true);
+                return;
             }
-        }
-        if (savedHistory) setWeightHistory(JSON.parse(savedHistory));
 
-        // Set mounted LAST to allow initial load to finish before auto-saving kicks in
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        if (mounted) localStorage.setItem('gamification_health_nutrition', JSON.stringify(allNutritionData));
-    }, [allNutritionData, mounted]);
-
-    useEffect(() => {
-        if (mounted) localStorage.setItem('shiro_health_exercises', JSON.stringify(allExercises));
-    }, [allExercises, mounted]);
-
-    useEffect(() => {
-        if (mounted) localStorage.setItem('gamification_health_diet', JSON.stringify(dietPlan));
-    }, [dietPlan, mounted]);
-
-    useEffect(() => {
-        if (mounted) localStorage.setItem('gamification_health_workout', JSON.stringify(workoutPlan));
-    }, [workoutPlan, mounted]);
-
-    useEffect(() => {
-        if (mounted) localStorage.setItem('gamification_health_history', JSON.stringify(weightHistory));
-    }, [weightHistory, mounted]);
-
-    // Sync with Supabase Auth Metadata
-    useEffect(() => {
-        if (user?.user_metadata) {
-            const meta = user.user_metadata;
-            setUserData(prev => ({
-                ...prev,
-                weight: meta.weight || prev.weight,
-                startingWeight: meta.startingWeight || meta.weight || prev.startingWeight,
-                goal: meta.goal || prev.goal,
-                targetWeight: meta.targetWeight || prev.targetWeight,
-                deadline: meta.deadline || prev.deadline,
-                onboardingSet: meta.onboardingSet || (!!meta.weight && !!meta.height),
-            }));
-            
-            // Sync GameContext values if they are missing locally but exist in auth
-            if (meta.age && userAge !== meta.age) setUserAge(meta.age);
-            if (meta.height && userHeight !== meta.height) setUserHeight(meta.height);
-            if (meta.sex && userSex !== meta.sex) setUserSex(meta.sex);
-
-            // Sync complex objects from cloud if available
-            if (meta.dietPlan) {
-                // Check deep equality to avoid loop
-                if (JSON.stringify(dietPlan) !== JSON.stringify(meta.dietPlan)) {
-                    setDietPlan(meta.dietPlan);
+            try {
+                // 1. Load Profile
+                const { data: profile } = await supabase.from('health_profiles').select('*').eq('user_id', user.id).single();
+                
+                if (profile) {
+                    setUserData(prev => ({
+                        ...prev,
+                        weight: profile.weight || '',
+                        startingWeight: profile.starting_weight || '',
+                        bf: profile.bf || '',
+                        goal: profile.goal || 'perder_peso',
+                        targetWeight: profile.target_weight || '',
+                        deadline: profile.deadline_months?.toString() || '3',
+                        onboardingSet: profile.onboarding_completed || false,
+                        rewardedMonths: profile.rewarded_months || []
+                    }));
+                    if (profile.age) setUserAge(profile.age);
+                    if (profile.height) setUserHeight(profile.height);
+                    if (profile.sex) setUserSex(profile.sex);
                 }
+
+                // 2. Load Diet Plan
+                const { data: diet } = await supabase.from('health_diet_plans').select('plan_data').eq('user_id', user.id).single();
+                if (diet) setDietPlan(diet.plan_data);
+
+                // 3. Load Workout Plan
+                const { data: workout } = await supabase.from('health_workout_plans').select('plan_data').eq('user_id', user.id).single();
+                if (workout) setWorkoutPlan(workout.plan_data);
+
+                // 4. Load Weight History
+                const { data: history } = await supabase.from('health_weight_history').select('*').eq('user_id', user.id).order('date', { ascending: false });
+                if (history) setWeightHistory(history);
+
+            } catch (error) {
+                console.error('Error loading health data from Supabase:', error);
+            } finally {
+                setMounted(true);
             }
-            if (meta.workoutPlan) {
-                 if (JSON.stringify(workoutPlan) !== JSON.stringify(meta.workoutPlan)) {
-                    setWorkoutPlan(meta.workoutPlan);
-                 }
-            }
-            if (meta.weightHistory) {
-                 if (JSON.stringify(weightHistory) !== JSON.stringify(meta.weightHistory)) {
-                    setWeightHistory(meta.weightHistory);
-                 }
-            }
-        }
+        };
+
+        loadData();
     }, [user, setUserAge, setUserHeight, setUserSex]);
 
-    // Sync Health Data to Supabase
+    // Save to LocalStorage (Backup/Cache)
     useEffect(() => {
-        if (mounted && user) {
-            const timer = setTimeout(() => {
-                const meta = user.user_metadata || {};
-                
-                // Only update if there are changes to avoid loop
-                const dietChanged = JSON.stringify(dietPlan) !== JSON.stringify(meta.dietPlan);
-                const workoutChanged = JSON.stringify(workoutPlan) !== JSON.stringify(meta.workoutPlan);
-                const historyChanged = JSON.stringify(weightHistory) !== JSON.stringify(meta.weightHistory);
+        if (mounted) {
+            localStorage.setItem('gamification_health_nutrition', JSON.stringify(allNutritionData));
+            localStorage.setItem('shiro_health_exercises', JSON.stringify(allExercises));
+            localStorage.setItem('gamification_health_diet', JSON.stringify(dietPlan));
+            localStorage.setItem('gamification_health_workout', JSON.stringify(workoutPlan));
+            localStorage.setItem('gamification_health_history', JSON.stringify(weightHistory));
+            localStorage.setItem('gamification_health_user', JSON.stringify(userData));
+        }
+    }, [allNutritionData, allExercises, dietPlan, workoutPlan, weightHistory, userData, mounted]);
 
-                if (dietChanged || workoutChanged || historyChanged) {
-                    supabase.auth.updateUser({
-                        data: {
-                            dietPlan,
-                            workoutPlan,
-                            weightHistory
-                        }
-                    }).catch(err => console.error('Failed to sync health stats:', err));
-                }
-            }, 4000); // 4s debounce
+    // Save Diet Plan to Supabase
+    useEffect(() => {
+        if (mounted && user && dietPlan) {
+            const saveDiet = async () => {
+                await supabase.from('health_diet_plans').upsert({
+                    user_id: user.id,
+                    plan_data: dietPlan,
+                    updated_at: new Date()
+                });
+            };
+            const timer = setTimeout(saveDiet, 2000); // Debounce
             return () => clearTimeout(timer);
         }
-    }, [dietPlan, workoutPlan, weightHistory, user, mounted]);
+    }, [dietPlan, user, mounted]);
+
+    // Save Workout Plan to Supabase
+    useEffect(() => {
+        if (mounted && user && workoutPlan) {
+            const saveWorkout = async () => {
+                await supabase.from('health_workout_plans').upsert({
+                    user_id: user.id,
+                    plan_data: workoutPlan,
+                    updated_at: new Date()
+                });
+            };
+            const timer = setTimeout(saveWorkout, 2000); // Debounce
+            return () => clearTimeout(timer);
+        }
+    }, [workoutPlan, user, mounted]);
 
     const updateUserData = async (data) => {
         setUserData(prev => ({ ...prev, ...data }));
+        
         if (user) {
-            await supabase.auth.updateUser({
-                data: data
-            });
+            // Prepare DB object
+            const updates = {
+                user_id: user.id,
+                updated_at: new Date()
+            };
+
+            if (data.weight !== undefined) updates.weight = data.weight;
+            if (data.startingWeight !== undefined) updates.starting_weight = data.startingWeight;
+            if (data.bf !== undefined) updates.bf = data.bf;
+            if (data.goal !== undefined) updates.goal = data.goal;
+            if (data.targetWeight !== undefined) updates.target_weight = data.targetWeight;
+            if (data.deadline !== undefined) updates.deadline_months = parseInt(data.deadline);
+            if (data.onboardingSet !== undefined) updates.onboarding_completed = data.onboardingSet;
+            if (data.rewardedMonths !== undefined) updates.rewarded_months = data.rewardedMonths;
+            if (data.age !== undefined) updates.age = data.age;
+            if (data.height !== undefined) updates.height = data.height;
+            if (data.sex !== undefined) updates.sex = data.sex;
+
+            await supabase.from('health_profiles').upsert(updates);
+            
+            // Keep auth metadata in sync for now (optional)
+            await supabase.auth.updateUser({ data });
         }
     };
 
@@ -261,6 +214,8 @@ export const useHealth = () => {
             weight: data.weight,
             startingWeight: data.weight,
             onboardingSet: true,
+            rewardedMonths: [],
+            // Extra fields for DB
             age: data.age,
             height: data.height,
             sex: data.sex
@@ -272,6 +227,17 @@ export const useHealth = () => {
         }));
 
         if (user) {
+            await supabase.from('health_profiles').upsert({
+                user_id: user.id,
+                weight: data.weight,
+                starting_weight: data.weight,
+                onboarding_completed: true,
+                age: data.age,
+                height: data.height,
+                sex: data.sex,
+                rewarded_months: []
+            });
+            
             await supabase.auth.updateUser({
                 data: updates
             });
@@ -288,12 +254,26 @@ export const useHealth = () => {
             bf: newBf
         };
 
+        // Optimistic UI update
         setWeightHistory(prev => [record, ...prev]);
-
-        // Update current weight in profile
         setUserData(prev => ({ ...prev, weight: newWeight }));
 
         if (user) {
+            // Save history entry
+            await supabase.from('health_weight_history').insert({
+                user_id: user.id,
+                weight: newWeight,
+                bf: newBf || null,
+                date: new Date()
+            });
+
+            // Update profile
+            await supabase.from('health_profiles').upsert({
+                user_id: user.id,
+                weight: newWeight,
+                updated_at: new Date()
+            });
+
             await supabase.auth.updateUser({
                 data: { weight: newWeight }
             });
@@ -319,12 +299,20 @@ export const useHealth = () => {
             });
         }
 
-        setUserData(prev => ({
-            ...prev,
-            weight: newWeight,
-            bf: newBf || prev.bf,
-            rewardedMonths: [...(prev.rewardedMonths || []), ...newlyRewardedMonths.map(m => m.month)]
-        }));
+        if (newlyRewardedMonths.length > 0) {
+            const newMonths = [...(userData.rewardedMonths || []), ...newlyRewardedMonths.map(m => m.month)];
+            setUserData(prev => ({
+                ...prev,
+                rewardedMonths: newMonths
+            }));
+            
+            if (user) {
+                await supabase.from('health_profiles').upsert({
+                    user_id: user.id,
+                    rewarded_months: newMonths
+                });
+            }
+        }
     };
 
     const calculateTMB = () => {
@@ -493,10 +481,9 @@ export const useHealth = () => {
                 B: {
                     name: 'Costas e Bíceps',
                     exercises: [
-                        { name: 'Puxada Alta', sets: '3', reps: '12', completed: false },
+                        { name: 'Puxada Alta (Máquina)', sets: '3', reps: '12', completed: false },
                         { name: 'Remada Sentada (Máquina)', sets: '3', reps: '12', completed: false },
-                        { name: 'Extensão de Lombar (Máquina)', sets: '3', reps: '15', completed: false },
-                        { name: 'Rosca Martelo com Halteres', sets: '3', reps: '12', completed: false },
+                        { name: 'Puxada Pulldown', sets: '3', reps: '12', completed: false },
                         { name: 'Rosca Direta com Halteres', sets: '3', reps: '12', completed: false },
                         { name: 'Cardio: Bicicleta', sets: '1', reps: '15 min', completed: false }
                     ]

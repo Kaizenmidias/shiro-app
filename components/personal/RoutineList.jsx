@@ -120,7 +120,7 @@ export const RoutineList = () => {
                         <div key={task.id} className={`glass-panel p-4 flex items-center gap-3 group transition-all ${task.completed ? 'opacity-50' : 'hover:border-[var(--primary)]/50'}`}>
 
                             {/* Reorder Controls */}
-                            <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex flex-col gap-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                                 <button
                                     onClick={() => moveTask(task.id, 'up')}
                                     disabled={index === 0}
@@ -160,13 +160,13 @@ export const RoutineList = () => {
                             <div className="flex items-center gap-1">
                                 <button
                                     onClick={() => handleOpenModal(task)}
-                                    className="opacity-0 group-hover:opacity-100 text-[var(--text-muted)] hover:text-[var(--primary)] transition-all p-2"
+                                    className="lg:opacity-0 lg:group-hover:opacity-100 text-[var(--text-muted)] hover:text-[var(--primary)] transition-all p-2"
                                 >
                                     <Pencil size={18} />
                                 </button>
                                 <button
                                     onClick={() => removeTask(task.id)}
-                                    className="opacity-0 group-hover:opacity-100 text-[var(--text-muted)] hover:text-[var(--accent)] transition-all p-2"
+                                    className="lg:opacity-0 lg:group-hover:opacity-100 text-[var(--text-muted)] hover:text-[var(--accent)] transition-all p-2"
                                 >
                                     <Trash2 size={18} />
                                 </button>
