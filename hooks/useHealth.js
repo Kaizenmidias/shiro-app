@@ -128,13 +128,20 @@ export const useHealth = () => {
     useEffect(() => {
         if (mounted && user && dietPlan) {
             const saveDiet = async () => {
-                const { error } = await supabase.from('health_diet_plans').upsert({
-                    user_id: user.id,
-                    plan_data: dietPlan,
-                    updated_at: new Date()
-                }, { onConflict: 'user_id' });
-                
-                if (error) console.error('Error saving diet plan:', error);
+                try {
+                    const { error } = await supabase.from('health_diet_plans').upsert({
+                        user_id: user.id,
+                        plan_data: dietPlan,
+                        updated_at: new Date()
+                    }, { onConflict: 'user_id' });
+                    
+                    if (error) {
+                        console.error('Error saving diet plan:', error);
+                        // Retry once if needed or just log
+                    }
+                } catch (err) {
+                     console.error('Exception saving diet plan:', err);
+                }
             };
             const timer = setTimeout(saveDiet, 2000); // Debounce
             return () => clearTimeout(timer);
@@ -145,13 +152,17 @@ export const useHealth = () => {
     useEffect(() => {
         if (mounted && user && workoutPlan) {
             const saveWorkout = async () => {
-                const { error } = await supabase.from('health_workout_plans').upsert({
-                    user_id: user.id,
-                    plan_data: workoutPlan,
-                    updated_at: new Date()
-                }, { onConflict: 'user_id' });
+                try {
+                    const { error } = await supabase.from('health_workout_plans').upsert({
+                        user_id: user.id,
+                        plan_data: workoutPlan,
+                        updated_at: new Date()
+                    }, { onConflict: 'user_id' });
 
-                if (error) console.error('Error saving workout plan:', error);
+                    if (error) console.error('Error saving workout plan:', error);
+                } catch (err) {
+                    console.error('Exception saving workout plan:', err);
+                }
             };
             const timer = setTimeout(saveWorkout, 2000); // Debounce
             return () => clearTimeout(timer);

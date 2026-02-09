@@ -226,6 +226,8 @@ export const useFinance = () => {
             setExpenses(prev => prev.map(e => e.id === tempId ? { ...e, id: data.id } : e));
         } else if (error) {
             console.error('Error adding expense:', error);
+            // Show alert to user
+            alert(`Erro ao salvar despesa: ${error.message}`);
             setExpenses(prev => prev.filter(e => e.id !== tempId));
         }
     };
@@ -238,7 +240,14 @@ export const useFinance = () => {
         const newStatus = !exp.paid;
         setExpenses(prev => prev.map(e => e.id === id ? { ...e, paid: newStatus } : e));
 
-        await supabase.from('finance_transactions').update({ is_paid: newStatus }).eq('id', id);
+        const { error } = await supabase.from('finance_transactions').update({ is_paid: newStatus }).eq('id', id);
+        
+        if (error) {
+            console.error('Error updating expense status:', error);
+            alert(`Erro ao atualizar status: ${error.message}`);
+            // Rollback
+            setExpenses(prev => prev.map(e => e.id === id ? { ...e, paid: !newStatus } : e));
+        }
     };
 
     const removeExpense = async (id) => {
@@ -274,6 +283,7 @@ export const useFinance = () => {
             setShoppingList(prev => prev.map(i => i.id === tempId ? { ...i, id: data.id } : i));
         } else if (error) {
             console.error('Error adding shopping item:', error);
+            alert(`Erro ao salvar item de compra: ${error.message}`);
             setShoppingList(prev => prev.filter(i => i.id !== tempId));
         }
     };
@@ -311,6 +321,7 @@ export const useFinance = () => {
              setCards(prev => prev.map(c => c.id === tempId ? { ...c, id: data.id } : c));
         } else if (error) {
              console.error('Error adding card purchase:', error);
+             alert(`Erro ao salvar compra no cartão: ${error.message}`);
              setCards(prev => prev.filter(c => c.id !== tempId));
         }
     };
