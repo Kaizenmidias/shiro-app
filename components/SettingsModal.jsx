@@ -50,6 +50,16 @@ export const SettingsModal = ({ isOpen, onClose }) => {
 
     const uploadPhotoIfNeeded = async () => {
         if (!photoFile || !user) return null;
+
+        // 1. Validation: File size (limit to 2MB)
+        if (photoFile.size > 2 * 1024 * 1024) {
+            throw new Error('O arquivo é muito grande. O limite máximo é 2MB.');
+        }
+
+        // 2. Validation: File type
+        if (!photoFile.type.startsWith('image/')) {
+            throw new Error('Por favor, selecione apenas arquivos de imagem.');
+        }
         
         // Sanitize file name and extension
         const fileExt = photoFile.name.split('.').pop() || 'png';
@@ -58,6 +68,13 @@ export const SettingsModal = ({ isOpen, onClose }) => {
         const filePath = fileName;
 
         console.log('Iniciando upload para:', filePath);
+
+        // 3. Pre-check: List files to verify bucket access (Optional but helpful for debug)
+        const { error: listError } = await supabase.storage.from('avatars').list();
+        if (listError) {
+             console.error('Erro de acesso ao bucket:', listError);
+             throw new Error('Não foi possível acessar o armazenamento. Verifique se as políticas de segurança foram aplicadas.');
+        }
 
         const { error: uploadError } = await supabase.storage
             .from('avatars')
@@ -86,6 +103,18 @@ export const SettingsModal = ({ isOpen, onClose }) => {
         
         if (!data || !data.publicUrl) {
             throw new Error('Não foi possível obter a URL pública da imagem.');
+        }
+
+        // 4. Verification: Check if the URL is actually reachable
+        try {
+            const checkResponse = await fetch(data.publicUrl, { method: 'HEAD' });
+            if (!checkResponse.ok) {
+                 console.warn('URL gerada não está acessível:', data.publicUrl, checkResponse.status);
+                 // We won't throw here immediately as it might take a moment to propagate, 
+                 // but we'll log it. 
+            }
+        } catch (fetchErr) {
+            console.warn('Erro ao verificar URL:', fetchErr);
         }
 
         return data.publicUrl;

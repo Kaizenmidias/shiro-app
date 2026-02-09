@@ -60,7 +60,15 @@ export const GameProvider = ({ children }) => {
         if (savedStats) setGameStats(JSON.parse(savedStats));
         if (savedHistory) setHistory(JSON.parse(savedHistory));
         if (savedName) setUserName(savedName);
-        if (savedPhoto && !savedPhoto.startsWith('blob:')) setUserPhoto(savedPhoto);
+        if (savedPhoto) {
+            if (savedPhoto.startsWith('blob:')) {
+                // If it's a blob URL, it's likely invalid/expired. Don't use it.
+                // We should rely on what's in Supabase or the default.
+                localStorage.removeItem('gamification_user_photo');
+            } else {
+                setUserPhoto(savedPhoto);
+            }
+        }
         if (savedAge) setUserAge(savedAge);
         if (savedHeight) setUserHeight(savedHeight);
         if (savedSex) setUserSex(savedSex);
