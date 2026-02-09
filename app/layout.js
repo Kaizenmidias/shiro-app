@@ -2,6 +2,7 @@ import './globals.css';
 import { Poppins } from 'next/font/google';
 import { Providers } from '../components/Providers';
 import { LayoutShell } from '../components/LayoutShell';
+import MobileInitializer from '../components/mobile/MobileInitializer';
 
 const poppins = Poppins({
     subsets: ['latin'],
@@ -19,6 +20,7 @@ export default function RootLayout({ children }) {
         <html lang="pt-BR" className={poppins.variable}>
             <body className="scrollbar-none font-poppins">
                 <Providers>
+                    <MobileInitializer />
                     <LayoutShell>{children}</LayoutShell>
                 </Providers>
             </body>
