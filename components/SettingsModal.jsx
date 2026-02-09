@@ -68,6 +68,16 @@ export const SettingsModal = ({ isOpen, onClose }) => {
 
         if (uploadError) {
             console.error('Erro no upload Supabase:', uploadError);
+            
+            // Tratamento específico para bucket não encontrado
+            if (uploadError.message && (
+                uploadError.message.includes('Bucket not found') || 
+                uploadError.error === 'Bucket not found' ||
+                (uploadError.statusCode === '404' && uploadError.message.includes('bucket'))
+            )) {
+                throw new Error('CONFIGURAÇÃO NECESSÁRIA: O bucket "avatars" não existe no Supabase. Por favor, execute o script SUPABASE_STORAGE_SETUP.sql no painel do seu projeto.');
+            }
+            
             throw new Error(`Erro no upload: ${uploadError.message}`);
         }
 
