@@ -19,10 +19,10 @@ export default function DashboardPage() {
     const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
     // Calculate Estimated Net Balance (Saldo Líquido Estimado)
-    // Income - (Total Fixed Expenses + Total Shopping + Reserve)
+    // Income - (Total Fixed Expenses + Total Shopping) - Reserve is kept separate
     const totalFixedExpenses = expenses.reduce((sum, e) => sum + parseFloat(e.value || 0), 0);
     const totalShopping = shoppingList.reduce((sum, item) => sum + parseFloat(item.value || 0), 0);
-    const estimatedBalance = (income || 0) - totalFixedExpenses - totalShopping - (financeReserve?.current || 0);
+    const estimatedBalance = (income || 0) - totalFixedExpenses - totalShopping;
 
     const radius = 36;
     const circumference = 2 * Math.PI * radius;
