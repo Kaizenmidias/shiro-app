@@ -11,7 +11,7 @@ export const RankHeader = () => {
     if (!currentRank) return null; // Hydration guard
 
     return (
-        <div className="glass-panel p-4 md:p-6 mb-6 md:mb-8 relative overflow-hidden group">
+        <div className="glass-panel pt-6 pb-4 px-4 md:pt-8 md:pb-6 md:px-6 mb-6 md:mb-8 relative overflow-hidden group">
             {/* Background Pulse */}
             <div
                 className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-1000"
@@ -37,13 +37,6 @@ export const RankHeader = () => {
                             <Trophy size={14} style={{ color: currentRank.color, filter: `drop-shadow(0 0 3px ${currentRank.color})` }} />
                         </div>
                     </div>
-                    {/* Rank Name */}
-                    <span
-                        className="text-sm font-bold text-center whitespace-nowrap"
-                        style={{ color: currentRank.color, textShadow: `0 0 10px ${currentRank.color}40` }}
-                    >
-                        {currentRank.name}
-                    </span>
                 </div>
 
                 {/* Right Section (Greeting + Points) */}
