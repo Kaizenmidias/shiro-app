@@ -327,12 +327,7 @@ export const WorkoutTab = ({ workoutPlan, setWorkoutPlan, generateWorkout, toggl
                             <span className={`text-[9px] uppercase font-black mb-1.5 ${selectedDay === day ? 'text-[var(--primary)]' : 'text-white/30'}`}>
                                 {day.slice(0, 3)}
                             </span>
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center font-black text-[10px] mb-1.5 ${selectedDay === day
-                                ? 'bg-[var(--primary)] text-black'
-                                : type === 'Descanso' ? 'text-white/10' : 'text-white/40'
-                                }`}>
-                                {type === 'Descanso' ? <Calendar size={10} /> : type}
-                            </div>
+                            
                             <span className={`text-[7px] uppercase font-bold text-center leading-none px-0.5 break-words w-full line-clamp-2 ${selectedDay === day ? 'text-[var(--primary)]' : 'text-white/20'
                                 }`}>
                                 {wName}
