@@ -206,7 +206,7 @@ export const AuthScreen = () => {
                                 <CurrencyInput
                                     value={formData.income}
                                     onChange={val => setFormData({ ...formData, income: val })}
-                                    className="text-center text-xl font-black"
+                                    className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-xl py-4 px-4 text-white text-center text-xl font-black focus:outline-none focus:border-[var(--primary)] transition-all"
                                 />
                             </div>
                         </div>

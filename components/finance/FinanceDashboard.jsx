@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useGame } from '../../contexts/GameContext';
 import { CurrencyInput } from './CurrencyInput';
+import { FinancialHistory } from './FinancialHistory';
 
 export const FinanceDashboard = ({
     income,
@@ -24,11 +25,13 @@ export const FinanceDashboard = ({
     expenses,
     shoppingList,
     cards,
-    reserve
+    reserve,
+    history // Received from hook
 }) => {
     const { formatCurrency } = useGame();
     const [isEditingIncome, setIsEditingIncome] = useState(false);
     const [tempIncome, setTempIncome] = useState(income);
+    const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' | 'history'
 
     const totalExpenses = expenses.reduce((sum, exp) => sum + exp.value, 0);
     const paidExpenses = expenses.filter(exp => exp.paid).reduce((sum, exp) => sum + exp.value, 0);
@@ -65,14 +68,39 @@ export const FinanceDashboard = ({
                     <h1 className="text-4xl font-black text-white tracking-tighter">PANORAMA GERAL</h1>
                     <p className="text-[var(--text-muted)] text-sm font-bold uppercase tracking-widest mt-1">Controle Financeiro Consolidado</p>
                 </div>
-                <div className="text-right mt-6 md:mt-0">
-                    <span className="text-[10px] text-[var(--text-muted)] uppercase font-black tracking-widest block mb-1">Saldo Líquido Estimado</span>
-                    <h2 className={`text-5xl font-black tracking-tighter ${balance >= 0 ? 'text-white' : 'text-rose-400'}`}>
-                        {formatCurrency(balance)}
-                    </h2>
+                <div className="flex flex-col items-end gap-4 mt-6 md:mt-0">
+                    <div className="text-right">
+                        <span className="text-[10px] text-[var(--text-muted)] uppercase font-black tracking-widest block mb-1">Saldo Líquido Estimado</span>
+                        <h2 className={`text-5xl font-black tracking-tighter ${balance >= 0 ? 'text-white' : 'text-rose-400'}`}>
+                            {formatCurrency(balance)}
+                        </h2>
+                    </div>
+                    <div className="flex bg-black/40 p-1 rounded-lg border border-white/10">
+                        <button
+                            onClick={() => setViewMode('dashboard')}
+                            className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${viewMode === 'dashboard' ? 'bg-[var(--primary)] text-black shadow-[0_0_15px_rgba(0,243,255,0.4)]' : 'text-[var(--text-muted)] hover:text-white'}`}
+                        >
+                            Dashboard
+                        </button>
+                        <button
+                            onClick={() => setViewMode('history')}
+                            className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${viewMode === 'history' ? 'bg-[var(--primary)] text-black shadow-[0_0_15px_rgba(0,243,255,0.4)]' : 'text-[var(--text-muted)] hover:text-white'}`}
+                        >
+                            Histórico
+                        </button>
+                    </div>
                 </div>
             </div>
 
+            {viewMode === 'history' ? (
+                <FinancialHistory
+                    history={history}
+                    currentExpenses={expenses}
+                    currentShopping={shoppingList}
+                    income={income}
+                />
+            ) : (
+                <>
             {/* Core Cards: Income, Fixed Expenses, Shopping */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="glass-panel p-6 border-l-4 border-l-[var(--primary)] bg-gradient-to-br from-[var(--primary)]/5 to-transparent relative group">
@@ -225,6 +253,32 @@ export const FinanceDashboard = ({
                     </div>
                 </div>
             </div>
+
+            {/* Credit Cards Summary */}
+            <div className="glass-panel p-6 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)] opacity-5 blur-[50px] rounded-full pointer-events-none group-hover:opacity-10 transition-opacity" />
+                <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-[var(--primary)]/10 rounded-lg text-[var(--primary)]">
+                            <CreditCard size={20} />
+                        </div>
+                        <h3 className="text-lg font-black text-white">Cartões de Crédito</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-black/20 p-4 rounded-xl border border-white/5">
+                            <p className="text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Fatura Mensal</p>
+                            <p className="text-2xl font-black text-white">{formatCurrency(monthlyCardBill)}</p>
+                        </div>
+                        <div className="bg-black/20 p-4 rounded-xl border border-white/5">
+                            <p className="text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Restante a Pagar</p>
+                            <p className="text-2xl font-black text-rose-400">{formatCurrency(pendingCardBill)}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </>
+            )}
         </div>
     );
 };
