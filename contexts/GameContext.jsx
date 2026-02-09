@@ -30,10 +30,14 @@ export const GameProvider = ({ children }) => {
 
     useEffect(() => {
         if (user?.user_metadata) {
-            const { name, age, height, sex } = user.user_metadata;
+            const { name, age, height, sex, avatarUrl } = user.user_metadata;
             if (name) {
                 setUserName(name);
-                setUserPhoto(`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`);
+                if (avatarUrl) {
+                    setUserPhoto(avatarUrl);
+                } else {
+                    setUserPhoto(`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`);
+                }
             }
             if (age) setUserAge(age);
             if (height) setUserHeight(height);
