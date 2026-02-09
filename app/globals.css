@@ -93,3 +93,15 @@ body {
 .scrollbar-none::-webkit-scrollbar {
     display: none;
 }
+
+/* Time Input Styling for 24h feel */
+input[type="time"] {
+    color-scheme: dark;
+}
+input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.6;
+}
+input[type="time"]::-webkit-datetime-edit-ampm-field {
+    display: none;
+}
