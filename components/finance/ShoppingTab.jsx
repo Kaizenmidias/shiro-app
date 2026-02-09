@@ -9,7 +9,7 @@ import { CurrencyInput } from './CurrencyInput';
 export const ShoppingTab = ({ shoppingList, addItemToShop, toggleShopItem, removeShopItem }) => {
     const { formatCurrency } = useGame();
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newItem, setNewItem] = useState({ name: '', value: 0 });
+    const [newItem, setNewItem] = useState({ title: '', value: 0 });
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -18,9 +18,9 @@ export const ShoppingTab = ({ shoppingList, addItemToShop, toggleShopItem, remov
 
     const handleAdd = (e) => {
         e.preventDefault();
-        if (!newItem.name) return;
+        if (!newItem.title) return;
         addItemToShop({ ...newItem, value: newItem.value || 0 });
-        setNewItem({ name: '', value: 0 });
+        setNewItem({ title: '', value: 0 });
         setIsModalOpen(false);
     };
 
@@ -34,7 +34,7 @@ export const ShoppingTab = ({ shoppingList, addItemToShop, toggleShopItem, remov
                                 <CheckCircle2 size={14} strokeWidth={3} />
                             </div>
                             <div>
-                                <h3 className="font-bold text-white uppercase tracking-wider text-xs">{item.name}</h3>
+                                <h3 className="font-bold text-white uppercase tracking-wider text-xs">{item.title || item.name}</h3>
                                 <p className="text-sm font-mono text-[var(--text-muted)]">{item.value ? formatCurrency(item.value) : '-'}</p>
                             </div>
                         </div>
@@ -81,8 +81,8 @@ export const ShoppingTab = ({ shoppingList, addItemToShop, toggleShopItem, remov
                                     type="text"
                                     placeholder="Ex: Teclado, Monitor, Café..."
                                     className="w-full bg-[var(--surface-color)] border border-[var(--glass-border)] rounded-lg p-4 text-white focus:outline-none focus:border-[#a855f7]"
-                                    value={newItem.name}
-                                    onChange={e => setNewItem({ ...newItem, name: e.target.value })}
+                                    value={newItem.title}
+                                    onChange={e => setNewItem({ ...newItem, title: e.target.value })}
                                     autoFocus
                                 />
                             </div>
