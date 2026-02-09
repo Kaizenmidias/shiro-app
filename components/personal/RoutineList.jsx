@@ -51,10 +51,25 @@ export const RoutineList = () => {
         e.preventDefault();
         if (!taskData.title) return;
 
-        if (editingTask) {
-            updateTask({ ...editingTask, ...taskData });
+        // Calculate days based on frequency
+        let days = [];
+        if (taskData.frequency === 'everyday') {
+            days = [0, 1, 2, 3, 4, 5, 6];
+        } else if (taskData.frequency === 'workdays') {
+            days = [1, 2, 3, 4, 5];
         } else {
-            addTask(taskData);
+            days = taskData.customDays;
+        }
+
+        const finalTaskData = {
+            ...taskData,
+            days // Ensure 'days' property is set for getTodaysTasks filter
+        };
+
+        if (editingTask) {
+            updateTask({ ...editingTask, ...finalTaskData });
+        } else {
+            addTask(finalTaskData);
         }
 
         setIsModalOpen(false);
