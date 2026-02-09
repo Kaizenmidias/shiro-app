@@ -54,7 +54,8 @@ export const SettingsModal = ({ isOpen, onClose }) => {
         // Sanitize file name and extension
         const fileExt = photoFile.name.split('.').pop() || 'png';
         const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-        const filePath = `avatars/${fileName}`;
+        // Remove 'avatars/' prefix since we are already in the 'avatars' bucket
+        const filePath = fileName;
 
         console.log('Iniciando upload para:', filePath);
 
