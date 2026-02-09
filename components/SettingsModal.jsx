@@ -215,16 +215,17 @@ export const SettingsModal = ({ isOpen, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in">
-            <div className="glass-panel w-full max-w-md p-6 md:p-8 relative border-[var(--primary)] shadow-[0_0_50px_rgba(0,243,255,0.1)]">
-                {/* Header */}
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--primary)] to-transparent" />
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-white transition-colors"
-                >
-                    <X size={24} />
-                </button>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] overflow-y-auto animate-fade-in">
+            <div className="flex min-h-full items-center justify-center p-4">
+                <div className="glass-panel w-full max-w-md p-6 md:p-8 relative border-[var(--primary)] shadow-[0_0_50px_rgba(0,243,255,0.1)] my-4">
+                    {/* Header */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--primary)] to-transparent" />
+                    <button
+                        onClick={onClose}
+                        className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-white transition-colors z-10"
+                    >
+                        <X size={24} />
+                    </button>
 
                 <h2 className="text-xl md:text-2xl font-bold mb-8 flex items-center gap-2 text-white italic">
                     <span className="text-[var(--primary)]">///</span> PERFIL DO USUÁRIO
@@ -383,6 +384,7 @@ export const SettingsModal = ({ isOpen, onClose }) => {
                         </button>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     );
