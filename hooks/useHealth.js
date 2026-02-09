@@ -447,7 +447,10 @@ export const useHealth = () => {
                 plan_data: newPlan,
                 updated_at: new Date()
             }, { onConflict: 'user_id' }).then(({ error }) => {
-                if (error) console.error('Error saving generated diet:', error);
+                if (error) {
+                    console.error('Error saving generated diet:', error);
+                    alert('Erro ao salvar dieta. Verifique se você rodou o script SQL de correção no Supabase.');
+                }
             });
         }
     };
@@ -578,7 +581,10 @@ export const useHealth = () => {
                 plan_data: newPlan,
                 updated_at: new Date()
             }, { onConflict: 'user_id' }).then(({ error }) => {
-                if (error) console.error('Error saving generated workout:', error);
+                if (error) {
+                    console.error('Error saving generated workout:', error);
+                    alert('Erro ao salvar treino. Verifique se você rodou o script SQL de correção no Supabase.');
+                }
             });
         }
     };
