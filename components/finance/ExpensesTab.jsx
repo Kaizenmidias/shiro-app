@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Trash2, Check, DollarSign, X } from 'lucide-react';
 import { useGame } from '../../contexts/GameContext';
 import { CurrencyInput } from './CurrencyInput';
@@ -9,6 +10,11 @@ export const ExpensesTab = ({ expenses, addExpense, toggleExpensePaid, removeExp
     const { formatCurrency } = useGame();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newExpense, setNewExpense] = useState({ name: '', value: 0 });
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const totalMonthly = expenses.reduce((sum, exp) => sum + exp.value, 0);
     const totalPaid = expenses.filter(exp => exp.paid).reduce((sum, exp) => sum + exp.value, 0);
@@ -84,8 +90,8 @@ export const ExpensesTab = ({ expenses, addExpense, toggleExpensePaid, removeExp
             </button>
 
             {/* Modal Form */}
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+            {isModalOpen && mounted && createPortal(
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
                     <div className="glass-panel w-full max-w-md p-6 border-[var(--primary)] animate-fade-in shadow-[0_0_50px_rgba(0,243,255,0.15)] relative">
                         <button
                             onClick={() => setIsModalOpen(false)}
@@ -128,7 +134,8 @@ export const ExpensesTab = ({ expenses, addExpense, toggleExpensePaid, removeExp
                             </button>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { CreditCard, Plus, X, Trash2 } from 'lucide-react';
 import { useGame } from '../../contexts/GameContext';
 import { CurrencyInput } from './CurrencyInput';
@@ -9,6 +10,11 @@ export const CreditCardTab = ({ cards, addCardPurchase, removeCardPurchase, payI
     const { formatCurrency } = useGame();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newPurchase, setNewPurchase] = useState({ name: '', value: 0, installments: 1 });
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleAdd = (e) => {
         e.preventDefault();
@@ -98,8 +104,8 @@ export const CreditCardTab = ({ cards, addCardPurchase, removeCardPurchase, payI
             </button>
 
             {/* Modal Form */}
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+            {isModalOpen && mounted && createPortal(
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
                     <div className="glass-panel w-full max-w-md p-6 border-[#f97316] animate-fade-in shadow-[0_0_50px_rgba(249,115,22,0.15)] relative">
                         <button
                             onClick={() => setIsModalOpen(false)}
@@ -155,7 +161,8 @@ export const CreditCardTab = ({ cards, addCardPurchase, removeCardPurchase, payI
                             </button>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

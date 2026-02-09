@@ -37,10 +37,14 @@ export const RankHeader = () => {
                             <Trophy size={14} style={{ color: currentRank.color, filter: `drop-shadow(0 0 3px ${currentRank.color})` }} />
                         </div>
                     </div>
+                    {/* Rank Name */}
+                    <span className="text-[10px] md:text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                        {currentRank.name}
+                    </span>
                 </div>
 
                 {/* Right Section (Greeting + Points) */}
-                <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center md:justify-between gap-1 md:gap-4 mt-1 md:mt-0">
+                <div className="flex-1 min-w-0 flex flex-col justify-center gap-1 mt-1 md:mt-0">
                     
                     {/* Greeting */}
                     <div className="min-w-0">
@@ -54,13 +58,13 @@ export const RankHeader = () => {
                     </div>
 
                     {/* Points Section */}
-                    <div className="flex flex-col justify-center md:items-end md:text-right">
-                        <div className="text-2xl md:text-3xl font-bold text-white flex items-center justify-start md:justify-end gap-2" style={{ textShadow: '0 0 20px rgba(255,255,255,0.2)' }}>
+                    <div className="flex flex-col justify-center items-start">
+                        <div className="text-2xl md:text-3xl font-bold text-white flex items-center justify-start gap-2" style={{ textShadow: '0 0 20px rgba(255,255,255,0.2)' }}>
                             <Star className="text-[var(--primary)] fill-[var(--primary)] md:w-5 md:h-5" size={16} />
                             {points.toLocaleString()}
                         </div>
                         {nextRank && (
-                            <p className="text-[10px] md:text-xs text-[var(--text-muted)] font-bold mt-1 text-left md:text-right">
+                            <p className="text-[10px] md:text-xs text-[var(--text-muted)] font-bold mt-1 text-left">
                                 +{pointsToNext} PONTOS PARA {nextRank.name.toUpperCase()}
                             </p>
                         )}
