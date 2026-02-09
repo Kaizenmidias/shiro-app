@@ -26,11 +26,14 @@ export const RoutineProvider = ({ children }) => {
             }
             
             try {
+                // First try with order
                 const { data, error } = await supabase
                     .from('routine_tasks')
                     .select('*')
                     .eq('user_id', user.id)
                     .order('order', { ascending: true });
+
+                if (error) throw error;
 
                 if (data) {
                     // Normalize data (snake_case to camelCase for internal use)
@@ -39,11 +42,30 @@ export const RoutineProvider = ({ children }) => {
                         customDays: task.custom_days || []
                     }));
                     setTasks(normalizedTasks);
-                } else if (error) {
-                    console.error('Error loading routine:', error);
                 }
             } catch (err) {
-                console.error('Unexpected error loading routine:', err);
+                console.warn('Error loading routine with order, trying without order:', err);
+                
+                // Fallback: try without order if column is missing
+                try {
+                     const { data, error: retryError } = await supabase
+                        .from('routine_tasks')
+                        .select('*')
+                        .eq('user_id', user.id);
+                    
+                    if (data) {
+                         const normalizedTasks = data.map((task, index) => ({
+                            ...task,
+                            customDays: task.custom_days || [],
+                            order: task.order || index // Default order if missing
+                        }));
+                        setTasks(normalizedTasks);
+                    } else if (retryError) {
+                        console.error('Critical error loading routine:', retryError);
+                    }
+                } catch (retryErr) {
+                    console.error('Critical unexpected error loading routine:', retryErr);
+                }
             } finally {
                 setMounted(true);
             }
